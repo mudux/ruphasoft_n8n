@@ -1,0 +1,272 @@
+# n8n Node Build Reference
+# Source: https://docs.n8n.io/integrations/creating-nodes/build/reference/
+# Official n8n documentation for building custom nodes
+
+n8n_node_build_reference:
+  overview:
+    description: >
+      Reference material for building n8n nodes, including UI elements,
+      file structure, base and credentials files, UX and verification
+      guidelines, and the n8n-node CLI. [[Node reference](https://docs.n8n.io/integrations/creating-nodes/build/reference/)]
+    topics:
+      - node_ui_elements
+      - node_file_structure
+      - node_base_file
+      - node_codex_file
+      - credentials_file
+      - standard_parameters
+      - properties_parameter
+      - ux_guidelines
+      - verification_guidelines
+      - code_standards
+      - n8n_node_cli
+
+  node_file_structure:
+    description: >
+      Recommended file and directory layout for a node package. [[Node file structure](https://docs.n8n.io/integrations/creating-nodes/build/reference/node-file-structure/)]
+    required_files:
+      package_json:
+        path: ./package.json
+        purpose: NPM package metadata.
+      nodes_directory:
+        path: ./nodes
+        contents:
+          base_file:
+            pattern: "<NodeName>.node.ts"
+            description: Core node code (base file).
+          codex_file:
+            pattern: "<NodeName>.node.json"
+            description: >
+              Optional but recommended metadata file; filename must match
+              base file name. [[Node codex files](https://docs.n8n.io/integrations/creating-nodes/build/reference/node-codex-files/)]
+          other_files:
+            description: >
+              Optional subdirectories for actions, methods, transport,
+              versions, etc.
+      credentials_directory:
+        path: ./credentials
+        contents:
+          credentials_file:
+            pattern: "<NodeName>.credentials.ts"
+            description: Single credentials file for the node.
+    modular_structure:
+      recommended: true
+      pattern:
+        actions_dir:
+          description: >
+            Contains subdirectories per resource; each has resource
+            description and operation files.
+          resource_files:
+            - "<resourceName>.resource.ts or index.ts"
+            - "<operationName>.operation.ts (exports description and execute)"
+        methods_dir:
+          optional: true
+          purpose: Dynamic parameter functions.
+        transport_dir:
+          purpose: Communication implementation.
+    versioning:
+      description: >
+        For full versioning, use a directory per version plus a base file
+        that sets the default version. [[Node file structure](https://docs.n8n.io/integrations/creating-nodes/build/reference/node-file-structure/)]
+    multi_node_packages:
+      options:
+        - one_node_per_package
+        - multiple_nodes_per_package
+      note: >
+        If multiple nodes, each node gets its own directory under ./nodes.
+
+  node_codex_file:
+    description: >
+      JSON metadata file at the root of a node directory; filename must
+      match the node base filename. [[Node codex files](https://docs.n8n.io/integrations/creating-nodes/build/reference/node-codex-files/)]
+    filename_pattern: "<NodeName>.node.json"
+    parameters:
+      node:
+        description: >
+          Node name; must start with "n8n-nodes-base." (for example
+          "n8n-nodes-base.openweatherapi").
+      nodeVersion:
+        description: >
+          Node version; must match the `version` in the main node base
+          file (for example "1.0").
+      codexVersion:
+        description: >
+          Codex file version; current value is "1.0".
+      categories:
+        description: >
+          Determines which category the node appears in within the GUI.
+        allowed_values:
+          - "Data & Storage"
+          - "Finance & Accounting"
+          - "Marketing & Content"
+          - "Productivity"
+          - "Miscellaneous"
+          - "Sales"
+          - "Development"
+          - "Analytics"
+          - "Communication"
+          - "Utility"
+      resources:
+        description: >
+          Contains links to node documentation; n8n uses this to add help
+          links in the GUI.
+
+  node_base_file:
+    description: >
+      Core code of a node; every node must have a base file implementing
+      INodeType with a description that includes a properties array. [[Node base file](https://docs.n8n.io/integrations/creating-nodes/build/reference/node-base-files/)]
+    styles:
+      - declarative
+      - programmatic
+    common_structure:
+      class:
+        implements: INodeType
+        members:
+          - description: INodeTypeDescription
+    standard_parameters:
+      # From standard-parameters page
+      displayName:
+        type: string
+        required: true
+        description: Name shown in the n8n GUI. [[Standard parameters](https://docs.n8n.io/integrations/creating-nodes/build/reference/node-base-files/standard-parameters/)]
+      name:
+        type: string
+        required: true
+        description: Internal name used for references.
+      icon:
+        type: string_or_object
+        required: true
+        description: >
+          Node icon; usually an SVG. Can be "file:icon.svg" or an object
+          with `light` and `dark` paths.
+      group:
+        type: string_array
+        required: true
+        allowed_values:
+          - trigger
+          - schedule
+          - input
+          - output
+          - transform
+          - []
+        description: >
+          Describes node behavior (trigger, schedule, etc.).
+      description:
+        type: string
+        required: true
+        description: Short description used in the GUI.
+      defaults:
+        type: object
+        required: true
+        fields:
+          name:
+            type: string
+            description: Canvas name if displayName is too long.
+          color:
+            type: string
+            description: Brand hex color.
+      forceInputNodeExecution:
+        type: boolean
+        required: false
+        description: >
+          For multi-input nodes; if true, all branches must execute before
+          this node runs.
+      inputs:
+        type: string_array
+        required: true
+        description: >
+          Names of input connectors (for example ["main"]).
+      outputs:
+        type: string_array
+        required: true
+        description: >
+          Names of output connectors (for example ["main"]).
+      requiredInputs:
+        type: integer_or_array
+        required: false
+        description: >
+          For multi-input nodes; which inputs must have data before
+          execution.
+      credentials:
+        type: object_array
+        required: false
+        description: >
+          Credential options; each object links to a credentials file. [[Standard parameters](https://docs.n8n.io/integrations/creating-nodes/build/reference/node-base-files/standard-parameters/)]
+        object_fields:
+          name:
+            type: string
+            description: Internal credential name.
+          required:
+            type: boolean
+            description: Whether credentials are required.
+          displayOptions:
+            type: object
+            description: When to show credential options.
+
+# Additional n8n Standards for Community Packages
+community_package_standards:
+  package_json_requirements:
+    name:
+      pattern: "^[a-z]([a-z0-9-_])*$"
+      description: Package name must be lowercase with hyphens/underscores
+    keywords:
+      required:
+        - "n8n"
+        - "n8n-community-node-package"
+      description: Must include n8n community package keywords
+    n8n_section:
+      required_fields:
+        - n8nNodesApiVersion
+        - nodes
+      optional_fields:
+        - credentials
+    files:
+      description: Must include dist/** for compiled TypeScript
+
+  node_naming_conventions:
+    display_name:
+      pattern: "Service Name"
+      examples:
+        - "FHIR Patient"
+        - "Slack"
+        - "Google Sheets"
+    internal_name:
+      pattern: "serviceName"
+      examples:
+        - "fhirPatient"
+        - "slack"
+        - "googleSheets"
+    class_name:
+      pattern: "ServiceName"
+      examples:
+        - "FhirPatient"
+        - "Slack"
+        - "GoogleSheets"
+
+  ui_best_practices:
+    colors:
+      primary:
+        description: Use service's brand color
+        format: "hex color code"
+        examples:
+          healthcare: "#2E7D32"
+          productivity: "#1976D2"
+          communication: "#FF5722"
+    icons:
+      preferred: "SVG format"
+      fallback: "PNG (high resolution)"
+      size: "60x60 pixels minimum"
+
+  property_guidelines:
+    grouping:
+      use_collections: true
+      use_fixed_collections: true
+      description: Group related properties together
+    naming:
+      use_camelCase: true
+      be_descriptive: true
+      avoid_abbreviations: true
+    placeholders:
+      provide_examples: true
+      be_specific: true
+      show_format: true

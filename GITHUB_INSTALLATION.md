@@ -335,12 +335,37 @@ docker-compose up -d
 
 ### Common Issues
 
-**Permission Errors:**
+**Permission Errors (EACCES):**
+
+The most common issue is permission denied when installing globally. Here are several solutions:
+
 ```bash
-# Install as root, then switch to node user
-USER root
-RUN npm install -g your-package
-USER node
+# Solution 1: Install as root, then fix ownership
+user: root
+command: >
+  sh -c "
+    npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git &&
+    chown -R node:node /home/node/.n8n &&
+    su-exec node n8n start
+  "
+
+# Solution 2: Use user-local npm directory
+environment:
+  - NPM_CONFIG_PREFIX=/home/node/.npm-global
+  - PATH=/home/node/.npm-global/bin:$PATH
+command: >
+  sh -c "
+    mkdir -p /home/node/.npm-global &&
+    npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git &&
+    n8n start
+  "
+
+# Solution 3: Use unsafe-perm (quick fix)
+command: >
+  sh -c "
+    npm install -g --unsafe-perm https://github.com/your-org/fhir-n8n-custom-nodes.git &&
+    n8n start
+  "
 ```
 
 **Package Not Found:**

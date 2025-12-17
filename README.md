@@ -359,6 +359,10 @@ See `GITHUB_INSTALLATION.md` for complete installation options.
 - 🐳 **[Docker Testing Guide](DOCKER_TESTING_GUIDE.md)** - Comprehensive Docker testing instructions
 - ⚙️ **[Project Configuration](CLAUDE.md)** - Development setup and agent coordination
 - 📦 **[Archived Implementation](archived/)** - Previous comprehensive implementation (reference only)
+- 🎨 **[UI Enhancement Opportunities](UI_ENHANCEMENT_OPPORTUNITIES.md)** - UI improvement ideas and roadmap
+- 🧩 **[N8N UI Elements Reference](N8N_UI_ELEMENTS_REFERENCE.md)** - n8n UI component documentation
+- 🔧 **[N8N Build Reference](N8N_BUILD_REFERENCE.yml)** - Build configuration reference
+- ✅ **[N8N Compliance Audit](N8N_COMPLIANCE_AUDIT.md)** - Compliance and audit documentation
 
 ## Contributing
 

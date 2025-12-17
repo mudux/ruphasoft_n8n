@@ -1,0 +1,34 @@
+{
+  "node": "n8n-nodes-base.fhirPatient",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": [
+    "Data & Storage",
+    "Utility"
+  ],
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://github.com/your-org/fhir-n8n-custom-nodes/blob/main/README.md"
+      }
+    ],
+    "credentialDocumentation": [],
+    "generic": [
+      {
+        "label": "FHIR R4 Patient Resource",
+        "icon": "📄",
+        "url": "https://hl7.org/fhir/R4/patient.html"
+      },
+      {
+        "label": "Auto-Detection Guide",
+        "icon": "🔍",
+        "url": "https://github.com/your-org/fhir-n8n-custom-nodes/blob/main/docs/AUTO_DETECTION.md"
+      },
+      {
+        "label": "Example Workflows",
+        "icon": "📋",
+        "url": "https://github.com/your-org/fhir-n8n-custom-nodes/tree/main/examples"
+      }
+    ]
+  }
+}
