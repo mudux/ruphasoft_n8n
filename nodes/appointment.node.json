@@ -1,0 +1,34 @@
+{
+  "node": "n8n-nodes-base.fhirAppointment",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": [
+    "Data & Storage",
+    "Utility"
+  ],
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://github.com/mudux/ruphasoft_n8n/blob/main/README.md"
+      }
+    ],
+    "credentialDocumentation": [],
+    "generic": [
+      {
+        "label": "FHIR R4 Appointment Resource",
+        "icon": "📅",
+        "url": "https://hl7.org/fhir/R4/appointment.html"
+      },
+      {
+        "label": "Auto-Detection Guide",
+        "icon": "🔍",
+        "url": "https://github.com/mudux/ruphasoft_n8n/blob/main/docs/AUTO_DETECTION.md"
+      },
+      {
+        "label": "Appointment Mapping Examples",
+        "icon": "📋",
+        "url": "https://github.com/mudux/ruphasoft_n8n/tree/main/examples/appointment"
+      }
+    ]
+  }
+}
