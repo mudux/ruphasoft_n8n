@@ -133,7 +133,7 @@ docker-compose restart n8n
     "transformation"
   ],
   "dependencies": {
-    "@solarahealth/fhir-r4": "^0.1.0"
+    "n8n-workflow": "^1.0.0"
   },
   "devDependencies": {
     "n8n-workflow": "^1.0.0",
