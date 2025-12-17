@@ -65,7 +65,14 @@ const FHIR_PATTERNS = {
   bundle: {
     bundleId: /^(bundle_?id|transaction_?id|batch_?id)$/i,
     type: /^(bundle_?type|type|transaction_type)$/i,
-    timestamp: /^(timestamp|created|bundle_date)$/i
+    timestamp: /^(timestamp|created|bundle_date|date_created)$/i,
+    total: /^(total|count|total_count|entry_count)$/i,
+    entryType: /^(entry_?(type|resource_type)|resource_type)$/i,
+    entryId: /^(entry_?(id|resource_id)|resource_id)$/i,
+    fullUrl: /^(full_?url|entry_url|resource_url)$/i,
+    method: /^(method|request_method|http_method)$/i,
+    requestUrl: /^(request_?url|url|endpoint)$/i,
+    responseStatus: /^(response_?status|status_code|http_status)$/i
   }
 };
 

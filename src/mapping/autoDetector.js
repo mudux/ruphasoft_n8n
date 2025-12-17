@@ -57,7 +57,14 @@ const FHIR_FIELD_PATHS = {
   bundle: {
     bundleId: 'identifier.value',
     type: 'type',
-    timestamp: 'timestamp'
+    timestamp: 'timestamp',
+    total: 'total',
+    entryType: 'entry[0].resource.resourceType',
+    entryId: 'entry[0].resource.id',
+    fullUrl: 'entry[0].fullUrl',
+    method: 'entry[0].request.method',
+    requestUrl: 'entry[0].request.url',
+    responseStatus: 'entry[0].response.status'
   }
 };
 

@@ -1,0 +1,106 @@
+{
+  "name": "FHIR Patient Transformation - Auto Detection",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "patient_first_name",
+              "value": "John"
+            },
+            {
+              "name": "patient_last_name",
+              "value": "Doe"
+            },
+            {
+              "name": "dob",
+              "value": "1990-05-15"
+            },
+            {
+              "name": "phone",
+              "value": "(555) 123-4567"
+            },
+            {
+              "name": "mrn",
+              "value": "12345"
+            },
+            {
+              "name": "patient_gender",
+              "value": "M"
+            },
+            {
+              "name": "email",
+              "value": "john.doe@example.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1234567890abcdef",
+      "name": "Sample Patient Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300],
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "includeDetailedMapping": true
+        }
+      },
+      "id": "abcdef1234567890",
+      "name": "FHIR Patient",
+      "type": "fhir-n8n-custom-nodes.fhirPatient",
+      "typeVersion": 1,
+      "position": [860, 300],
+      "credentials": {}
+    },
+    {
+      "parameters": {},
+      "id": "fedcba0987654321",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300],
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sample Patient Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Patient Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR Patient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "12345678-1234-1234-1234-123456789012",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "12345678901234567890123456789012"
+  },
+  "id": "87654321",
+  "tags": ["FHIR", "Patient", "Auto-Detection", "Healthcare"]
+}

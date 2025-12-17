@@ -1,0 +1,120 @@
+{
+  "name": "FHIR ClaimResponse Transformation - Auto Detection",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "claim_id",
+              "value": "CLAIM-2024-98765"
+            },
+            {
+              "name": "status",
+              "value": "active"
+            },
+            {
+              "name": "outcome",
+              "value": "complete"
+            },
+            {
+              "name": "patient_id",
+              "value": "Patient/54321"
+            },
+            {
+              "name": "insurer_name",
+              "value": "BlueCross BlueShield"
+            },
+            {
+              "name": "total_amount",
+              "value": "1250.00"
+            },
+            {
+              "name": "payment_amount",
+              "value": "1000.00"
+            },
+            {
+              "name": "payment_date",
+              "value": "2024-12-18"
+            },
+            {
+              "name": "adjudication_code",
+              "value": "eligible"
+            },
+            {
+              "name": "adjudication_amount",
+              "value": "1000.00"
+            },
+            {
+              "name": "currency",
+              "value": "USD"
+            },
+            {
+              "name": "original_request_ref",
+              "value": "Claim/original-claim-123"
+            }
+          ]
+        }
+      },
+      "id": "claimresponse-data",
+      "name": "Sample ClaimResponse Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "includeDetailedMapping": true,
+          "stopOnError": false
+        }
+      },
+      "id": "fhir-claimresponse-node",
+      "name": "FHIR ClaimResponse",
+      "type": "fhir-n8n-custom-nodes.fhirClaimResponse",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sample ClaimResponse Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample ClaimResponse Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR ClaimResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": ["FHIR", "ClaimResponse", "Auto-Detection", "Insurance"]
+}

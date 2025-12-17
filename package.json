@@ -1,13 +1,16 @@
 {
-  "name": "fhir-n8n-nodes",
-  "version": "0.1.0",
-  "description": "Simple FHIR transformation nodes for n8n with auto-detection and manual override mapping",
+  "name": "fhir-n8n-custom-nodes",
+  "version": "1.0.0",
+  "description": "FHIR transformation nodes for n8n with intelligent auto-detection and manual override capabilities",
   "main": "nodes/index.js",
   "files": [
-    "nodes/**/*.js",
-    "src/**/*.js"
+    "nodes/**/*",
+    "src/**/*",
+    "package.json",
+    "README.md"
   ],
   "n8n": {
+    "n8nNodesApiVersion": 1,
     "credentials": [],
     "nodes": [
       "nodes/patient.js",
@@ -18,8 +21,11 @@
     ]
   },
   "scripts": {
-    "build": "echo 'Simple JS implementation - no build needed'",
-    "test": "echo 'Tests not implemented yet'"
+    "test-core": "node test_core.js",
+    "test": "npm run test-core",
+    "docker-setup": "node docker_setup.js",
+    "docker-verify": "node docker_setup.js verify",
+    "build": "echo 'Docker-only implementation - no build needed'"
   },
   "dependencies": {
     "@solarahealth/fhir-r4": "^0.1.0",
@@ -30,8 +36,10 @@
   },
   "keywords": [
     "n8n",
+    "n8n-community-node-package",
     "fhir",
     "healthcare",
+    "transformation",
     "auto-detection",
     "mapping"
   ],

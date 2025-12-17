@@ -1,0 +1,206 @@
+{
+  "name": "FHIR EligibilityResponse Transformation - Manual Override",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "response_id",
+              "value": "ELIG-2024-11111"
+            },
+            {
+              "name": "eligibility_status",
+              "value": "active"
+            },
+            {
+              "name": "disposition",
+              "value": "Policy is currently in-force"
+            },
+            {
+              "name": "member_id",
+              "value": "Patient/member-789"
+            },
+            {
+              "name": "insurance_provider",
+              "value": "Organization/aetna"
+            },
+            {
+              "name": "created_timestamp",
+              "value": "2024-12-20T15:45:00Z"
+            },
+            {
+              "name": "coverage_reference",
+              "value": "Coverage/policy-456"
+            },
+            {
+              "name": "in_network",
+              "value": "true"
+            },
+            {
+              "name": "benefit_category",
+              "value": "medical"
+            },
+            {
+              "name": "copay_value",
+              "value": "25.00"
+            },
+            {
+              "name": "deductible_remaining",
+              "value": "500.00"
+            },
+            {
+              "name": "out_of_pocket_max",
+              "value": "5000.00"
+            },
+            {
+              "name": "currency_code",
+              "value": "USD"
+            }
+          ]
+        }
+      },
+      "id": "eligibility-data",
+      "name": "Sample Eligibility Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "manualMappings": {
+          "mappingValues": [
+            {
+              "sourceField": "response_id",
+              "fhirPath": "identifier[0].value",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "eligibility_status",
+              "fhirPath": "status",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "disposition",
+              "fhirPath": "outcome",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "member_id",
+              "fhirPath": "patient.reference",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "insurance_provider",
+              "fhirPath": "insurer.reference",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "created_timestamp",
+              "fhirPath": "created",
+              "transformation": "convertToFhirDate",
+              "action": "override"
+            },
+            {
+              "sourceField": "coverage_reference",
+              "fhirPath": "insurance[0].coverage.reference",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "in_network",
+              "fhirPath": "insurance[0].inforce",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "benefit_category",
+              "fhirPath": "insurance[0].item[0].category.coding[0].code",
+              "transformation": "toLowerCase",
+              "action": "override"
+            },
+            {
+              "sourceField": "copay_value",
+              "fhirPath": "insurance[0].item[0].benefit[0].allowedMoney.value",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "currency_code",
+              "fhirPath": "insurance[0].item[0].benefit[0].allowedMoney.currency",
+              "transformation": "toUpperCase",
+              "action": "override"
+            },
+            {
+              "sourceField": "deductible_remaining",
+              "fhirPath": "insurance[0].item[0].benefit[1].allowedMoney.value",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "out_of_pocket_max",
+              "fhirPath": "insurance[0].item[0].benefit[2].allowedMoney.value",
+              "transformation": "",
+              "action": "override"
+            }
+          ]
+        },
+        "options": {
+          "includeDetailedMapping": true,
+          "customId": "eligibility-response-manual-001"
+        }
+      },
+      "id": "fhir-eligibility-node",
+      "name": "FHIR EligibilityResponse",
+      "type": "fhir-n8n-custom-nodes.fhirEligibilityResponse",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sample Eligibility Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Eligibility Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR EligibilityResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": ["FHIR", "EligibilityResponse", "Manual Override", "Insurance", "Benefits"]
+}

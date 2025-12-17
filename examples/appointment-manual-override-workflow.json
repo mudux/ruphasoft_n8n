@@ -1,0 +1,146 @@
+{
+  "name": "FHIR Appointment Transformation - Manual Override",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "appt_id",
+              "value": "APT-2024-001"
+            },
+            {
+              "name": "visit_date_time",
+              "value": "2024-12-20T10:30:00Z"
+            },
+            {
+              "name": "appointment_status",
+              "value": "booked"
+            },
+            {
+              "name": "patient_ref",
+              "value": "Patient/12345"
+            },
+            {
+              "name": "doctor_ref",
+              "value": "Practitioner/dr-smith"
+            },
+            {
+              "name": "visit_duration",
+              "value": "30"
+            },
+            {
+              "name": "reason_text",
+              "value": "Annual checkup"
+            }
+          ]
+        }
+      },
+      "id": "appointment-data",
+      "name": "Custom Appointment Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "manualMappings": {
+          "mappingValues": [
+            {
+              "sourceField": "appt_id",
+              "fhirPath": "identifier[0].value",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "visit_date_time",
+              "fhirPath": "start",
+              "transformation": "convertToFhirDateTime",
+              "action": "override"
+            },
+            {
+              "sourceField": "appointment_status",
+              "fhirPath": "status",
+              "transformation": "normalizeStatus",
+              "action": "override"
+            },
+            {
+              "sourceField": "patient_ref",
+              "fhirPath": "participant[0].actor.reference",
+              "transformation": "formatReference",
+              "action": "override"
+            },
+            {
+              "sourceField": "doctor_ref",
+              "fhirPath": "participant[1].actor.reference",
+              "transformation": "formatReference",
+              "action": "override"
+            },
+            {
+              "sourceField": "visit_duration",
+              "fhirPath": "minutesDuration",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "reason_text",
+              "fhirPath": "reasonCode[0].text",
+              "transformation": "",
+              "action": "override"
+            }
+          ]
+        },
+        "options": {
+          "includeDetailedMapping": true,
+          "customId": "appointment-custom-001"
+        }
+      },
+      "id": "fhir-appointment-node",
+      "name": "FHIR Appointment",
+      "type": "fhir-n8n-custom-nodes.fhirAppointment",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Custom Appointment Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Custom Appointment Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": ["FHIR", "Appointment", "Manual Override", "Healthcare"]
+}

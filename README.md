@@ -1,8 +1,33 @@
-# FHIR n8n Custom Nodes - Simplified Implementation
+# FHIR n8n Custom Nodes - Docker Implementation
+
+> **TL;DR**: Transform any JSON to FHIR resources in n8n with intelligent auto-detection + manual override. Docker-native, extremely forgiving validation, GitHub installable.
 
 ## Overview
 
-Simple, YAGNI-focused FHIR transformation nodes for n8n workflow automation. Transforms mixed JSON payloads into FHIR-compliant resources with **robust auto-detection** and **comprehensive manual override** capabilities.
+Simple, YAGNI-focused FHIR transformation nodes for **n8n Docker environments**. Transforms mixed JSON payloads into FHIR-compliant resources with **robust auto-detection** and **comprehensive manual override** capabilities.
+
+> **Docker Only**: This implementation is designed exclusively for Docker Compose environments.
+
+## ⚡ Quick Install
+
+```bash
+# Install in existing n8n Docker container
+docker-compose exec n8n npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git
+docker-compose restart n8n
+# ✅ Look for "FHIR Patient" node in n8n palette
+```
+
+## 📋 Table of Contents
+
+- [Core Features](#core-features)
+- [Quick Start](#quick-start-docker-only)
+- [Node Configuration](#node-configuration)
+- [FHIR Resources](#supported-resources-5-only)
+- [Installation](#installation-for-users)
+- [Testing](#testing-in-docker)
+- [Development](#development)
+- [Output Format](#output-format)
+- [Documentation](#documentation-links)
 
 ## Core Features
 
@@ -31,25 +56,46 @@ Simple, YAGNI-focused FHIR transformation nodes for n8n workflow automation. Tra
 | **ClaimResponse** | 🚧 Planned | Insurance claim responses |
 | **EligibilityResponse** | 🚧 Planned | Insurance eligibility responses |
 
-## Quick Start
+## Quick Start (Docker Only)
 
-### 1. Installation
+### Method 1: GitHub Installation (Recommended)
+
+Install directly from GitHub repository into your n8n Docker container:
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    command: >
+      sh -c "
+        npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git &&
+        n8n start
+      "
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=password
+    volumes:
+      - n8n_data:/home/node/.n8n
+```
+
+### Method 2: Manual Installation
+
 ```bash
 # Clone repository
 git clone <repository-url>
 cd fhir-n8n-custom-nodes
 
-# Install dependencies
-npm install
-```
+# Option A: Volume mount
+# Add to docker-compose.yml:
+# - ./fhir-n8n-custom-nodes:/home/node/.n8n/custom/fhir-nodes:ro
 
-### 2. n8n Integration
-```bash
-# Link to n8n custom nodes directory
-ln -s $(pwd) ~/.n8n/custom/
-
-# Or copy nodes to n8n installation
-cp -r nodes/* /path/to/n8n/nodes/
+# Option B: Copy to running container
+npm run docker-setup
 ```
 
 ### 3. Usage Example
@@ -177,9 +223,13 @@ fhir-n8n-custom-nodes/
 │   └── utils/                      # Transformation utilities
 │       └── fhirTransform.js        # Main transformation pipeline
 ├── archived/                       # Previous comprehensive implementation
-├── package.json                    # Simple dependencies
+├── docker_setup.js                 # Docker setup automation
+├── test_core.js                    # Core logic testing
+├── package.json                    # Docker-focused dependencies
 ├── README.md                       # This file
-└── CLAUDE.md                       # Project configuration
+├── CLAUDE.md                       # Project configuration
+├── DOCKER_TESTING_GUIDE.md         # Complete Docker testing instructions
+└── GITHUB_INSTALLATION.md          # GitHub installation guide (recommended)
 ```
 
 ## Development
@@ -217,20 +267,16 @@ appointment: {
 }
 ```
 
-### Testing
+### Testing in Docker
 ```bash
-# Test pattern matching
-node -e "
-const { findBestMatch } = require('./src/mapping/patterns');
-console.log(findBestMatch('patient_first_name', 'patient'));
-"
+# Test core logic without n8n UI
+npm test
 
-# Test transformation
-node -e "
-const { FhirTransformer } = require('./src/utils/fhirTransform');
-const transformer = new FhirTransformer('patient');
-transformer.transform({patient_first_name: 'John'}).then(console.log);
-"
+# Docker-specific testing
+npm run docker-verify
+
+# Full testing guide
+# See: DOCKER_TESTING_GUIDE.md
 ```
 
 ## Output Format
@@ -282,6 +328,37 @@ This implementation follows strict **You Aren't Gonna Need It (YAGNI)** and **Ke
 - Advanced validation rules
 - Multiple output formats
 - Experimental features
+
+## Installation for Users
+
+### GitHub Installation (Easiest)
+```bash
+# For existing n8n Docker containers
+docker-compose exec n8n npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git
+docker-compose restart n8n
+```
+
+### Docker Compose Integration
+```yaml
+# Add to your docker-compose.yml
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    command: >
+      sh -c "
+        npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git &&
+        n8n start
+      "
+```
+
+See `GITHUB_INSTALLATION.md` for complete installation options.
+
+## Documentation Links
+
+- 📚 **[GitHub Installation Guide](GITHUB_INSTALLATION.md)** - Complete GitHub installation methods
+- 🐳 **[Docker Testing Guide](DOCKER_TESTING_GUIDE.md)** - Comprehensive Docker testing instructions
+- ⚙️ **[Project Configuration](CLAUDE.md)** - Development setup and agent coordination
+- 📦 **[Archived Implementation](archived/)** - Previous comprehensive implementation (reference only)
 
 ## Contributing
 

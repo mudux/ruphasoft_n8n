@@ -3,9 +3,8 @@
 
 module.exports = {
   patient: require('./patient.js'),
-  // Additional nodes to be added:
-  // appointment: require('./appointment.js'),
-  // bundle: require('./bundle.js'),
-  // claimResponse: require('./claimResponse.js'),
-  // eligibilityResponse: require('./eligibilityResponse.js')
+  appointment: require('./appointment.js'),
+  bundle: require('./bundle.js'),
+  claimResponse: require('./claimResponse.js'),
+  eligibilityResponse: require('./eligibilityResponse.js')
 };
