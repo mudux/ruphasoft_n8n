@@ -1,0 +1,26 @@
+packages:
+  - 'packages/*'
+  - 'packages/nodes/*'
+  - 'examples/*'
+  - 'tools/*'
+
+# Shared dependencies
+shared-workspace-lockfile: true
+
+# Package hoisting configuration
+shamefully-hoist: false
+auto-install-peers: true
+
+# Resolution overrides for security
+overrides:
+  # Security patches
+  "semver": "^7.5.4"
+  "tough-cookie": "^4.1.3"
+
+# Workspace protocols
+link-workspace-packages: true
+save-workspace-protocol: true
+
+# Publishing configuration
+publish-branch: main
+access: public

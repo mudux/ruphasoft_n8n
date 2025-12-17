@@ -1,0 +1,1 @@
+export { Patient } from './nodes/Patient/Patient.node';

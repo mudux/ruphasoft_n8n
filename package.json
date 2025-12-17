@@ -1,0 +1,40 @@
+{
+  "name": "fhir-n8n-nodes",
+  "version": "0.1.0",
+  "description": "Simple FHIR transformation nodes for n8n with auto-detection and manual override mapping",
+  "main": "nodes/index.js",
+  "files": [
+    "nodes/**/*.js",
+    "src/**/*.js"
+  ],
+  "n8n": {
+    "credentials": [],
+    "nodes": [
+      "nodes/patient.js",
+      "nodes/appointment.js",
+      "nodes/bundle.js",
+      "nodes/claimResponse.js",
+      "nodes/eligibilityResponse.js"
+    ]
+  },
+  "scripts": {
+    "build": "echo 'Simple JS implementation - no build needed'",
+    "test": "echo 'Tests not implemented yet'"
+  },
+  "dependencies": {
+    "@solarahealth/fhir-r4": "^0.1.0",
+    "n8n-workflow": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0"
+  },
+  "keywords": [
+    "n8n",
+    "fhir",
+    "healthcare",
+    "auto-detection",
+    "mapping"
+  ],
+  "author": "FHIR n8n Team",
+  "license": "MIT"
+}

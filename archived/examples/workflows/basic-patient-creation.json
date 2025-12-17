@@ -1,0 +1,149 @@
+{
+  "name": "Basic Patient Creation Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "active": true,
+        "name": [
+          {
+            "nameValues": [
+              {
+                "use": "official",
+                "family": "Doe",
+                "given": ["John", "William"],
+                "prefix": ["Mr."]
+              }
+            ]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1985-07-15",
+        "telecom": [
+          {
+            "contactValues": [
+              {
+                "system": "phone",
+                "value": "+1-555-123-4567",
+                "use": "home",
+                "rank": 1
+              },
+              {
+                "system": "email",
+                "value": "john.doe@example.com",
+                "use": "home",
+                "rank": 2
+              }
+            ]
+          }
+        ],
+        "identifier": [
+          {
+            "identifierValues": [
+              {
+                "use": "usual",
+                "system": "http://hospital.example.org/patient-ids",
+                "value": "MRN-123456"
+              }
+            ]
+          }
+        ],
+        "address": [
+          {
+            "addressValues": [
+              {
+                "use": "home",
+                "type": "both",
+                "line": ["123 Main Street", "Apt 4B"],
+                "city": "Springfield",
+                "state": "IL",
+                "postalCode": "62701",
+                "country": "USA"
+              }
+            ]
+          }
+        ]
+      },
+      "id": "fhir-patient-node",
+      "name": "Create Patient",
+      "type": "fhirPatient",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://fhir.example.org/Patient",
+        "authentication": "headerAuth",
+        "options": {
+          "headers": {
+            "Content-Type": "application/fhir+json"
+          }
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "body",
+              "value": "={{ JSON.stringify($node[\"Create Patient\"].json.fhirResource) }}"
+            }
+          ]
+        }
+      },
+      "id": "http-request-node",
+      "name": "Submit to FHIR Server",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "={{ $node[\"Submit to FHIR Server\"].json.resourceType }}",
+            "operation": "equal",
+            "rightValue": "Patient"
+          }
+        }
+      },
+      "id": "if-node",
+      "name": "Validate Response",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [800, 300]
+    }
+  ],
+  "connections": {
+    "Create Patient": {
+      "main": [
+        [
+          {
+            "node": "Submit to FHIR Server",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit to FHIR Server": {
+      "main": [
+        [
+          {
+            "node": "Validate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-15T00:00:00.000Z",
+  "id": "basic-patient-workflow",
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["FHIR", "Patient", "Healthcare"],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-15T00:00:00.000Z",
+  "versionId": "1"
+}
