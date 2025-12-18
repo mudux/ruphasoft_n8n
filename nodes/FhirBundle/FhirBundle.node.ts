@@ -1,6 +1,8 @@
 import {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
@@ -144,6 +146,50 @@ export class FhirBundle implements INodeType {
 				]
 			}
 		]
+	};
+
+	methods = {
+		loadOptions: {
+			async getBundleFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return [
+					// Bundle Core Fields
+					{ name: 'Bundle Type (document, message, transaction, etc.)', value: 'type' },
+					{ name: 'Bundle Identifier - Value', value: 'identifier.value' },
+					{ name: 'Bundle Identifier - System', value: 'identifier.system' },
+					{ name: 'Timestamp', value: 'timestamp' },
+					{ name: 'Total (Total number of matches)', value: 'total' },
+
+					// Entry Fields
+					{ name: 'Entry - Full URL', value: 'entry[0].fullUrl' },
+					{ name: 'Entry - Resource Type', value: 'entry[0].resource.resourceType' },
+					{ name: 'Entry - Resource ID', value: 'entry[0].resource.id' },
+					{ name: 'Entry - Request Method', value: 'entry[0].request.method' },
+					{ name: 'Entry - Request URL', value: 'entry[0].request.url' },
+					{ name: 'Entry - Response Status', value: 'entry[0].response.status' },
+					{ name: 'Entry - Response Location', value: 'entry[0].response.location' },
+					{ name: 'Entry - Search Mode', value: 'entry[0].search.mode' },
+					{ name: 'Entry - Search Score', value: 'entry[0].search.score' },
+
+					// Link Fields
+					{ name: 'Link - Relation', value: 'link[0].relation' },
+					{ name: 'Link - URL', value: 'link[0].url' },
+
+					// Meta Fields
+					{ name: 'Meta - Version ID', value: 'meta.versionId' },
+					{ name: 'Meta - Last Updated', value: 'meta.lastUpdated' },
+					{ name: 'Meta - Source', value: 'meta.source' },
+					{ name: 'Meta - Profile', value: 'meta.profile[0]' },
+					{ name: 'Meta - Security', value: 'meta.security[0].code' },
+					{ name: 'Meta - Tag', value: 'meta.tag[0].code' },
+
+					// Signature Fields
+					{ name: 'Signature - Type', value: 'signature.type[0].code' },
+					{ name: 'Signature - When', value: 'signature.when' },
+					{ name: 'Signature - Who Reference', value: 'signature.who.reference' },
+					{ name: 'Signature - Data', value: 'signature.data' },
+				];
+			}
+		}
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

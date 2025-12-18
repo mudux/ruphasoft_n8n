@@ -1,10 +1,13 @@
 import {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
 
+// Note: Using require for compatibility with existing JavaScript modules
 const { FhirTransformer } = require('../../src/utils/fhirTransform');
 
 export class FhirPatient implements INodeType {
@@ -144,6 +147,64 @@ export class FhirPatient implements INodeType {
 				]
 			}
 		]
+	};
+
+	methods = {
+		loadOptions: {
+			async getPatientFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return [
+					// Name fields
+					{ name: 'Name - Family Name', value: 'name[0].family' },
+					{ name: 'Name - Given Name (First)', value: 'name[0].given[0]' },
+					{ name: 'Name - Given Name (Middle)', value: 'name[0].given[1]' },
+					{ name: 'Name - Text (Full Name)', value: 'name[0].text' },
+					{ name: 'Name - Use (usual, official, temp)', value: 'name[0].use' },
+
+					// Demographics
+					{ name: 'Birth Date', value: 'birthDate' },
+					{ name: 'Gender', value: 'gender' },
+					{ name: 'Deceased - Boolean', value: 'deceasedBoolean' },
+					{ name: 'Deceased - Date Time', value: 'deceasedDateTime' },
+
+					// Contact Information
+					{ name: 'Telecom - Phone', value: 'telecom[0].value' },
+					{ name: 'Telecom - Email', value: 'telecom[1].value' },
+					{ name: 'Telecom - System (phone, email, fax)', value: 'telecom[0].system' },
+					{ name: 'Telecom - Use (home, work, temp)', value: 'telecom[0].use' },
+
+					// Address
+					{ name: 'Address - Line 1', value: 'address[0].line[0]' },
+					{ name: 'Address - Line 2', value: 'address[0].line[1]' },
+					{ name: 'Address - City', value: 'address[0].city' },
+					{ name: 'Address - State/Province', value: 'address[0].state' },
+					{ name: 'Address - Postal Code', value: 'address[0].postalCode' },
+					{ name: 'Address - Country', value: 'address[0].country' },
+					{ name: 'Address - Use (home, work, temp)', value: 'address[0].use' },
+
+					// Identifiers
+					{ name: 'Identifier - Value (MRN, SSN)', value: 'identifier[0].value' },
+					{ name: 'Identifier - System (namespace)', value: 'identifier[0].system' },
+					{ name: 'Identifier - Type', value: 'identifier[0].type.text' },
+					{ name: 'Identifier - Use (usual, official, temp)', value: 'identifier[0].use' },
+
+					// Additional Fields
+					{ name: 'Active Status', value: 'active' },
+					{ name: 'Marital Status', value: 'maritalStatus.text' },
+					{ name: 'Multiple Birth - Boolean', value: 'multipleBirthBoolean' },
+					{ name: 'Multiple Birth - Integer', value: 'multipleBirthInteger' },
+
+					// Contact Person
+					{ name: 'Contact - Name', value: 'contact[0].name.text' },
+					{ name: 'Contact - Relationship', value: 'contact[0].relationship[0].text' },
+					{ name: 'Contact - Phone', value: 'contact[0].telecom[0].value' },
+					{ name: 'Contact - Gender', value: 'contact[0].gender' },
+
+					// Communication
+					{ name: 'Communication - Language', value: 'communication[0].language.text' },
+					{ name: 'Communication - Preferred', value: 'communication[0].preferred' },
+				];
+			}
+		}
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

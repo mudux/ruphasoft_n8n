@@ -1,6 +1,8 @@
 import {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
@@ -144,6 +146,70 @@ export class FhirAppointment implements INodeType {
 				]
 			}
 		]
+	};
+
+	methods = {
+		loadOptions: {
+			async getAppointmentFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return [
+					// Appointment Identification
+					{ name: 'Resource ID', value: 'id' },
+					{ name: 'Status', value: 'status' },
+					{ name: 'Service Category', value: 'serviceCategory[0].text' },
+					{ name: 'Service Type', value: 'serviceType[0].text' },
+					{ name: 'Appointment Type', value: 'appointmentType.text' },
+
+					// Scheduling
+					{ name: 'Start Date/Time', value: 'start' },
+					{ name: 'End Date/Time', value: 'end' },
+					{ name: 'Minutes Duration', value: 'minutesDuration' },
+					{ name: 'Created Date', value: 'created' },
+
+					// Priority and Description
+					{ name: 'Priority', value: 'priority' },
+					{ name: 'Description', value: 'description' },
+					{ name: 'Comment', value: 'comment' },
+
+					// Patient Reference
+					{ name: 'Patient Reference', value: 'participant[0].actor.reference' },
+					{ name: 'Patient Display', value: 'participant[0].actor.display' },
+					{ name: 'Patient Status', value: 'participant[0].status' },
+					{ name: 'Patient Required', value: 'participant[0].required' },
+
+					// Practitioner Reference
+					{ name: 'Practitioner Reference', value: 'participant[1].actor.reference' },
+					{ name: 'Practitioner Display', value: 'participant[1].actor.display' },
+					{ name: 'Practitioner Status', value: 'participant[1].status' },
+
+					// Location
+					{ name: 'Location Reference', value: 'participant[2].actor.reference' },
+					{ name: 'Location Display', value: 'participant[2].actor.display' },
+
+					// Reason and Supporting Information
+					{ name: 'Reason Code Text', value: 'reasonCode[0].text' },
+					{ name: 'Reason Reference', value: 'reasonReference[0].reference' },
+					{ name: 'Supporting Information', value: 'supportingInformation[0].reference' },
+
+					// Identifiers
+					{ name: 'Identifier - Value', value: 'identifier[0].value' },
+					{ name: 'Identifier - System', value: 'identifier[0].system' },
+					{ name: 'Identifier - Use', value: 'identifier[0].use' },
+
+					// Cancellation
+					{ name: 'Cancellation Reason', value: 'cancelationReason.text' },
+
+					// Specialty
+					{ name: 'Specialty', value: 'specialty[0].text' },
+
+					// Slot Reference
+					{ name: 'Slot Reference', value: 'slot[0].reference' },
+
+					// Request Priority
+					{ name: 'Requested Period Start', value: 'requestedPeriod[0].start' },
+					{ name: 'Requested Period End', value: 'requestedPeriod[0].end' },
+				];
+			}
+		}
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

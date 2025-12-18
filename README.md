@@ -112,7 +112,28 @@ Simple n8n instance with TypeScript FHIR nodes only:
 docker compose -f docker-compose-typescript.yml up -d
 ```
 
-### Method 4: Legacy Manual Installation
+### Method 4: Debug/Troubleshooting
+
+If you're having issues with the TypeScript compilation, use the debug version:
+
+```bash
+# Debug the setup process with detailed logging
+docker compose -f docker-compose-debug.yml up
+
+# View detailed logs
+docker logs n8n-debug-setup
+
+# Inspect the container interactively
+docker exec -it n8n-debug-setup /bin/sh
+```
+
+This will show detailed information about:
+- Repository structure analysis
+- TypeScript file detection
+- Build process debugging
+- Compilation verification
+
+### Method 5: Legacy Manual Installation
 
 ```bash
 # Clone repository

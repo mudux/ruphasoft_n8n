@@ -1,6 +1,8 @@
 import {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
@@ -144,6 +146,80 @@ export class FhirEligibilityResponse implements INodeType {
 				]
 			}
 		]
+	};
+
+	methods = {
+		loadOptions: {
+			async getEligibilityResponseFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return [
+					// Core Response Fields
+					{ name: 'Status (active, cancelled, draft, entered-in-error)', value: 'status' },
+					{ name: 'Outcome (queued, complete, error, partial)', value: 'outcome' },
+					{ name: 'Disposition', value: 'disposition' },
+					{ name: 'Purpose (auth-requirements, benefits, discovery, validation)', value: 'purpose[0]' },
+
+					// References
+					{ name: 'Patient Reference', value: 'patient.reference' },
+					{ name: 'Patient Display Name', value: 'patient.display' },
+					{ name: 'Insurer Reference', value: 'insurer.reference' },
+					{ name: 'Insurer Display Name', value: 'insurer.display' },
+					{ name: 'Request Reference', value: 'request.reference' },
+					{ name: 'Request Display Name', value: 'request.display' },
+
+					// Dates and Service
+					{ name: 'Created Date', value: 'created' },
+					{ name: 'Serviced - Date', value: 'servicedDate' },
+					{ name: 'Serviced - Period Start', value: 'servicedPeriod.start' },
+					{ name: 'Serviced - Period End', value: 'servicedPeriod.end' },
+
+					// Insurance Coverage
+					{ name: 'Insurance - Coverage Reference', value: 'insurance[0].coverage.reference' },
+					{ name: 'Insurance - Coverage Display', value: 'insurance[0].coverage.display' },
+					{ name: 'Insurance - Inforce (boolean)', value: 'insurance[0].inforce' },
+					{ name: 'Insurance - Benefit Period Start', value: 'insurance[0].benefitPeriod.start' },
+					{ name: 'Insurance - Benefit Period End', value: 'insurance[0].benefitPeriod.end' },
+
+					// Benefit Information (First Item)
+					{ name: 'Benefit - Type Code', value: 'insurance[0].item[0].category.coding[0].code' },
+					{ name: 'Benefit - Type Display', value: 'insurance[0].item[0].category.coding[0].display' },
+					{ name: 'Benefit - Type System', value: 'insurance[0].item[0].category.coding[0].system' },
+					{ name: 'Benefit - Network Code', value: 'insurance[0].item[0].network.coding[0].code' },
+					{ name: 'Benefit - Network Display', value: 'insurance[0].item[0].network.coding[0].display' },
+					{ name: 'Benefit - Term Code', value: 'insurance[0].item[0].term.coding[0].code' },
+					{ name: 'Benefit - Term Display', value: 'insurance[0].item[0].term.coding[0].display' },
+
+					// Financial Information
+					{ name: 'Benefit - Financial Type Code', value: 'insurance[0].item[0].benefit[0].type.coding[0].code' },
+					{ name: 'Benefit - Financial Type Display', value: 'insurance[0].item[0].benefit[0].type.coding[0].display' },
+					{ name: 'Benefit - Allowed Unsigned Int', value: 'insurance[0].item[0].benefit[0].allowedUnsignedInt' },
+					{ name: 'Benefit - Allowed String', value: 'insurance[0].item[0].benefit[0].allowedString' },
+					{ name: 'Benefit - Allowed Money Value', value: 'insurance[0].item[0].benefit[0].allowedMoney.value' },
+					{ name: 'Benefit - Allowed Money Currency', value: 'insurance[0].item[0].benefit[0].allowedMoney.currency' },
+					{ name: 'Benefit - Used Unsigned Int', value: 'insurance[0].item[0].benefit[0].usedUnsignedInt' },
+					{ name: 'Benefit - Used Money Value', value: 'insurance[0].item[0].benefit[0].usedMoney.value' },
+					{ name: 'Benefit - Used Money Currency', value: 'insurance[0].item[0].benefit[0].usedMoney.currency' },
+
+					// Error Fields
+					{ name: 'Error - Code', value: 'error[0].code.coding[0].code' },
+					{ name: 'Error - Display', value: 'error[0].code.coding[0].display' },
+					{ name: 'Error - System', value: 'error[0].code.coding[0].system' },
+
+					// Form Information
+					{ name: 'Form - Code', value: 'form.coding[0].code' },
+					{ name: 'Form - Display', value: 'form.coding[0].display' },
+					{ name: 'Form - System', value: 'form.coding[0].system' },
+
+					// Identifiers
+					{ name: 'Identifier - Value', value: 'identifier[0].value' },
+					{ name: 'Identifier - System', value: 'identifier[0].system' },
+					{ name: 'Identifier - Type Text', value: 'identifier[0].type.text' },
+					{ name: 'Identifier - Use', value: 'identifier[0].use' },
+
+					// Additional Fields
+					{ name: 'Pre-Auth Reference', value: 'preAuthRef[0]' },
+				];
+			}
+		}
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
