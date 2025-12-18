@@ -15,7 +15,7 @@ export class FhirClaimResponse implements INodeType {
 		name: 'fhirClaimResponse',
 		group: ['transform'],
 		version: 1,
-		icon: 'file:../../ruphasoft_icon.svg',
+		icon: 'file:ruphasoft_icon.svg',
 		description: 'Transform JSON payload to FHIR ClaimResponse resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Claim Response',

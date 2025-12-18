@@ -31,6 +31,10 @@ class FhirTransformer {
       // Step 3: Transform to FHIR resource
       const fhirResource = this._buildFhirResource(inputPayload, finalMappings);
 
+      // Extract transformation metadata before validation (which may modify the resource)
+      const transformationMeta = fhirResource._transformationMeta || { appliedMappings: [], skippedMappings: [] };
+      delete fhirResource._transformationMeta; // Clean up before validation
+
       // Step 4: Validate and auto-correct
       const validationResult = this.validator.validate(fhirResource);
 
@@ -40,6 +44,7 @@ class FhirTransformer {
         autoDetectionResult,
         finalMappings,
         overrideResult,
+        transformationMeta,
         options
       );
 
@@ -56,14 +61,32 @@ class FhirTransformer {
       resourceType: this._capitalizeResourceType(this.resourceType)
     };
 
+    // Track which mappings were applied vs skipped
+    const appliedMappings = [];
+    const skippedMappings = [];
+
     for (const mapping of mappings) {
       const sourceValue = inputPayload[mapping.sourceField];
 
       if (sourceValue !== undefined && sourceValue !== null && sourceValue !== '') {
         let transformedValue = this._transformValue(sourceValue, mapping.transformation);
         this._setResourceValue(resource, mapping.fhirPath, transformedValue);
+        appliedMappings.push(mapping);
+      } else {
+        // Track mappings that were skipped due to missing source fields
+        skippedMappings.push({
+          ...mapping,
+          skipReason: sourceValue === undefined ? 'source_field_not_found' : 'source_field_empty'
+        });
+        console.warn(`FHIR Transform Warning: Mapping skipped for '${mapping.sourceField}' → '${mapping.fhirPath}' (${sourceValue === undefined ? 'field not found in input' : 'field is empty/null'})`);
       }
     }
+
+    // Attach metadata to resource for use in output generation
+    resource._transformationMeta = {
+      appliedMappings,
+      skippedMappings
+    };
 
     return resource;
   }
@@ -204,7 +227,18 @@ class FhirTransformer {
   }
 
   // Create standardized output format
-  _createStandardOutput(validationResult, autoDetectionResult, mappings, overrideResult, options) {
+  _createStandardOutput(validationResult, autoDetectionResult, mappings, overrideResult, transformationMeta, options) {
+    const appliedMappings = transformationMeta.appliedMappings || [];
+    const skippedMappings = transformationMeta.skippedMappings || [];
+
+    // Create detailed warnings for skipped mappings
+    const transformationWarnings = skippedMappings.map(skipped =>
+      `Manual mapping '${skipped.sourceField}' → '${skipped.fhirPath}' was skipped: ${skipped.skipReason === 'source_field_not_found' ? 'Source field not found in input data' : 'Source field is empty or null'}`
+    );
+
+    // Combine validation warnings with transformation warnings
+    const allWarnings = [...(validationResult.warnings || []), ...transformationWarnings];
+
     const output = {
       error: !validationResult.isValid,
       fhir_resource: validationResult.resource,
@@ -212,9 +246,18 @@ class FhirTransformer {
       resource_type: this._capitalizeResourceType(this.resourceType),
       validation_summary: {
         status: validationResult.summary.status,
-        mapped_fields: mappings.map(m => m.sourceField),
-        unmapped_fields: autoDetectionResult.unmapped.map(u => u.sourceField),
-        warnings: validationResult.warnings,
+        mapped_fields: appliedMappings.map(m => m.sourceField),
+        unmapped_fields: [
+          ...autoDetectionResult.unmapped.map(u => u.sourceField),
+          ...skippedMappings.map(s => s.sourceField)
+        ],
+        skipped_mappings: skippedMappings.map(s => ({
+          sourceField: s.sourceField,
+          fhirPath: s.fhirPath,
+          reason: s.skipReason,
+          userOverride: s.userOverride || false
+        })),
+        warnings: allWarnings,
         corrections: validationResult.corrections
       },
       mapping_summary: {
@@ -222,7 +265,9 @@ class FhirTransformer {
         auto_detected: autoDetectionResult.mappedFields,
         user_overrides: overrideResult ? overrideResult.appliedChanges : 0,
         high_confidence: autoDetectionResult.autoApplyable.length,
-        needs_review: autoDetectionResult.needsReview.length
+        needs_review: autoDetectionResult.needsReview.length,
+        successfully_applied: appliedMappings.length,
+        skipped_due_to_missing_fields: skippedMappings.length
       },
       metadata: {
         transformation_time: new Date().toISOString(),

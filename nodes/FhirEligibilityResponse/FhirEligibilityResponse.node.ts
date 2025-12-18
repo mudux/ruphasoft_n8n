@@ -15,7 +15,7 @@ export class FhirEligibilityResponse implements INodeType {
 		name: 'fhirEligibilityResponse',
 		group: ['transform'],
 		version: 1,
-		icon: 'file:../../ruphasoft_icon.svg',
+		icon: 'file:ruphasoft_icon.svg',
 		description: 'Transform JSON payload to FHIR CoverageEligibilityResponse resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Eligibility Response',
