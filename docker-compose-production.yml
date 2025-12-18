@@ -209,19 +209,6 @@ services:
           exit 1
         fi
 
-        echo '🎨 Copying icon files to compiled node directories...'
-        # Copy ruphasoft_icon.svg to each compiled node directory
-        if [ -f "ruphasoft_icon.svg" ]; then
-          for node_dir in dist/nodes/*/; do
-            if [ -d "$node_dir" ]; then
-              cp ruphasoft_icon.svg "$node_dir" 2>/dev/null || true
-              echo "  ✅ Icon copied to $(basename "$node_dir")"
-            fi
-          done
-        else
-          echo "  ⚠️  ruphasoft_icon.svg not found in repository"
-        fi
-
         echo '🧪 Verifying build structure...'
         echo "Current directory: $(pwd)"
         echo "Contents of dist/:"
@@ -268,15 +255,6 @@ services:
         else
           echo "  ❌ FhirEligibilityResponse compilation failed"
         fi
-
-        echo '🔍 Verifying icon files are properly copied...'
-        for node_name in "FhirPatient" "FhirAppointment" "FhirBundle" "FhirClaimResponse" "FhirEligibilityResponse"; do
-          if [ -f "dist/nodes/$node_name/ruphasoft_icon.svg" ]; then
-            echo "  ✅ Icon found in $node_name"
-          else
-            echo "  ⚠️  Icon missing in $node_name"
-          fi
-        done
 
         echo "🔍 Debug: Full compiled file listing:"
         find dist/ -name "*.js" -type f 2>/dev/null | head -20

@@ -15,7 +15,7 @@ export class FhirBundle implements INodeType {
 		name: 'fhirBundle',
 		group: ['transform'],
 		version: 1,
-		icon: 'file:ruphasoft_icon.svg',
+		icon: 'fa:archive',
 		description: 'Transform JSON payload to FHIR Bundle resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Bundle',
@@ -25,66 +25,28 @@ export class FhirBundle implements INodeType {
 		outputs: ['main'],
 		hints: [
 			{
-				message: '🤖 <strong>Auto-Population Active:</strong> Manual mapping source fields now show auto-detected options with confidence indicators (✅ high confidence, ⚠️ needs review, 📝 manual required).',
+				message: '🤖 <strong>Smart FHIR Mapping:</strong> Use auto-detection guidance and manual field mapping to transform your JSON payload into compliant FHIR Bundle resources.',
 				type: 'info',
 				location: 'inputPane',
-				whenToDisplay: 'always',
-				displayCondition: '={{ $parameter["mode"] === "manual" }}'
-			},
-			{
-				message: '⚡ <strong>Smart Field Detection:</strong> Connect input data and switch to manual mode to see intelligent field suggestions based on your actual data structure.',
-				type: 'info',
-				location: 'inputPane',
-				whenToDisplay: 'beforeExecution',
-				displayCondition: '={{ $parameter["mode"] === "auto" }}'
+				whenToDisplay: 'always'
 			}
 		],
 		properties: [
 			{
-				displayName: 'Processing Mode',
-				name: 'mode',
+				displayName: 'Auto-Detection Helper',
+				name: 'autoDetectionResults',
 				type: 'options',
-				options: [
-					{
-						name: 'Auto-Detection Only',
-						value: 'auto',
-						description: 'Use automatic field detection without manual overrides'
-					},
-					{
-						name: 'Manual Override',
-						value: 'manual',
-						description: 'Configure custom field mappings'
-					},
-					{
-						name: 'Template Mode',
-						value: 'template',
-						description: 'Use pre-configured mapping template'
-					}
-				],
-				default: 'auto',
-				description: 'Choose how to handle field mapping'
-			},
-			{
-				displayName: 'Auto-Population Helper',
-				name: 'autoPopulationNotice',
-				type: 'notice',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
+				typeOptions: {
+					loadOptionsMethod: 'runAutoDetection'
 				},
 				default: '',
-				description: '💡 <strong>Auto-Population Available:</strong> Source field dropdowns below will show available fields from your input data. Auto-detected mappings will appear as suggested options.'
+				description: '🔍 <strong>Click the dropdown to see mapping examples</strong> and auto-detection guidance. Copy useful mapping patterns to the fields below.',
+				placeholder: 'Click here for auto-detection guidance and mapping examples...'
 			},
 			{
-				displayName: 'Manual Mappings',
+				displayName: 'Field Mappings',
 				name: 'manualMappings',
 				type: 'fixedCollection',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
-				},
 				placeholder: 'Add field mapping',
 				default: {},
 				typeOptions: {
@@ -182,6 +144,74 @@ export class FhirBundle implements INodeType {
 
 	methods = {
 		loadOptions: {
+			async runAutoDetection(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				try {
+					// Provide Kenya IG-compliant bundle mapping guidance and examples
+					return [
+						{ name: '🇰🇪 Kenya IG Bundle Mapping Guide', value: '', description: 'Auto-detection patterns for Kenya Health Information Exchange bundles' },
+						{ name: '📋 Quick Start:', value: '', description: 'Copy the mapping patterns below to your manual fields' },
+
+						// Resource Core
+						{ name: '🆔 RESOURCE CORE', value: '', description: 'Bundle resource identification' },
+						{ name: 'bundle_id → id', value: 'bundle_id|id|', description: 'Override auto-generated resource ID' },
+						{ name: 'bundle_type → type', value: 'bundle_type|type|', description: 'Bundle type (document, message, transaction, batch, collection)' },
+
+						// Bundle Metadata
+						{ name: '📊 BUNDLE METADATA', value: '', description: 'Bundle-level information' },
+						{ name: 'timestamp → timestamp', value: 'timestamp|timestamp|convertToFhirDate', description: 'Bundle creation timestamp' },
+						{ name: 'total → total', value: 'total|total|', description: 'Total number of matches (for search bundles)' },
+
+						// Bundle Identifiers
+						{ name: '🏥 BUNDLE IDENTIFIERS', value: '', description: 'Bundle identification for HIE' },
+						{ name: 'bundle_identifier → identifier.value', value: 'bundle_identifier|identifier.value|', description: 'Bundle identifier value' },
+						{ name: 'bundle_system → identifier.system', value: 'bundle_system|identifier.system|', description: 'Bundle identifier system' },
+
+						// Entry Management
+						{ name: '📦 ENTRY MANAGEMENT', value: '', description: 'Bundle entry configuration' },
+						{ name: 'entry_count → total', value: 'entry_count|total|', description: 'Number of entries in bundle' },
+						{ name: 'entry_url_0 → entry[0].fullUrl', value: 'entry_url_0|entry[0].fullUrl|', description: 'First entry full URL' },
+						{ name: 'entry_resource_type_0 → entry[0].resource.resourceType', value: 'entry_resource_type_0|entry[0].resource.resourceType|', description: 'First entry resource type' },
+						{ name: 'entry_resource_id_0 → entry[0].resource.id', value: 'entry_resource_id_0|entry[0].resource.id|', description: 'First entry resource ID' },
+
+						// Transaction/Batch Operations
+						{ name: '🔄 TRANSACTION OPERATIONS', value: '', description: 'For transaction/batch bundles' },
+						{ name: 'entry_request_method_0 → entry[0].request.method', value: 'entry_request_method_0|entry[0].request.method|', description: 'HTTP method (POST, PUT, GET, DELETE)' },
+						{ name: 'entry_request_url_0 → entry[0].request.url', value: 'entry_request_url_0|entry[0].request.url|', description: 'Request URL' },
+						{ name: 'entry_response_status_0 → entry[0].response.status', value: 'entry_response_status_0|entry[0].response.status|', description: 'Response status' },
+						{ name: 'entry_response_location_0 → entry[0].response.location', value: 'entry_response_location_0|entry[0].response.location|', description: 'Response location header' },
+
+						// Search Results
+						{ name: '🔍 SEARCH RESULTS', value: '', description: 'For search result bundles' },
+						{ name: 'entry_search_mode_0 → entry[0].search.mode', value: 'entry_search_mode_0|entry[0].search.mode|', description: 'Search mode (match, include, outcome)' },
+						{ name: 'entry_search_score_0 → entry[0].search.score', value: 'entry_search_score_0|entry[0].search.score|', description: 'Search relevance score' },
+
+						// Bundle Links
+						{ name: '🔗 PAGINATION LINKS', value: '', description: 'Bundle pagination and navigation' },
+						{ name: 'link_relation_0 → link[0].relation', value: 'link_relation_0|link[0].relation|', description: 'Link relation (self, next, prev, first, last)' },
+						{ name: 'link_url_0 → link[0].url', value: 'link_url_0|link[0].url|', description: 'Link URL' },
+						{ name: 'next_page → link[next].url', value: 'next_page|link[1].url|', description: 'Next page URL for pagination' },
+
+						// Metadata and Context
+						{ name: '📋 META INFORMATION', value: '', description: 'Bundle metadata' },
+						{ name: 'version_id → meta.versionId', value: 'version_id|meta.versionId|', description: 'Bundle version ID' },
+						{ name: 'last_updated → meta.lastUpdated', value: 'last_updated|meta.lastUpdated|convertToFhirDate', description: 'Last updated timestamp' },
+						{ name: 'source → meta.source', value: 'source|meta.source|', description: 'Bundle source system' },
+						{ name: 'profile → meta.profile[0]', value: 'profile|meta.profile[0]|', description: 'Bundle profile URL' },
+
+						// Signature (for document bundles)
+						{ name: '✍️ DIGITAL SIGNATURE', value: '', description: 'Document bundle signatures' },
+						{ name: 'signature_type → signature.type[0].code', value: 'signature_type|signature.type[0].code|', description: 'Signature type code' },
+						{ name: 'signature_when → signature.when', value: 'signature_when|signature.when|convertToFhirDate', description: 'When signed' },
+						{ name: 'signature_who → signature.who.reference', value: 'signature_who|signature.who.reference|', description: 'Who signed (reference)' },
+						{ name: 'signature_data → signature.data', value: 'signature_data|signature.data|', description: 'Base64 signature data' }
+					];
+				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : String(error);
+					return [
+						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load Kenya IG bundle mapping guide' }
+					];
+				}
+			},
 
 			async getBundleFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return [
@@ -235,19 +265,15 @@ export class FhirBundle implements INodeType {
 				const inputData = items[itemIndex].json;
 
 				// Get node parameters
-				const mode = this.getNodeParameter('mode', itemIndex) as string;
 				const options = this.getNodeParameter('options', itemIndex, {}) as any;
 
-				// Prepare user mappings for manual override mode
-				let userMappings = null;
-				if (mode === 'manual') {
-					const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
-					userMappings = manualMappings.mappingValues || [];
-				}
+				// Get user mappings (always in manual mode now)
+				const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
+				const userMappings = manualMappings.mappingValues || [];
 
 				// Transform the data
 				const transformOptions = {
-					mode: mode,
+					mode: 'manual',
 					includeDetailedMapping: options.includeDetailedMapping || false,
 					customId: options.customId || null
 				};
@@ -268,7 +294,7 @@ export class FhirBundle implements INodeType {
 				// Add processing metadata
 				result.metadata.node_execution = {
 					itemIndex: itemIndex,
-					processingMode: mode,
+					processingMode: 'manual',
 					inputFieldCount: Object.keys(inputData).length,
 					timestamp: new Date().toISOString()
 				};

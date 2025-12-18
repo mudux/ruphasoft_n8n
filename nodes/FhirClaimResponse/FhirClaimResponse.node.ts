@@ -15,7 +15,7 @@ export class FhirClaimResponse implements INodeType {
 		name: 'fhirClaimResponse',
 		group: ['transform'],
 		version: 1,
-		icon: 'file:ruphasoft_icon.svg',
+		icon: 'fa:file-medical',
 		description: 'Transform JSON payload to FHIR ClaimResponse resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Claim Response',
@@ -25,66 +25,28 @@ export class FhirClaimResponse implements INodeType {
 		outputs: ['main'],
 		hints: [
 			{
-				message: '🤖 <strong>Auto-Population Active:</strong> Manual mapping source fields now show auto-detected options with confidence indicators (✅ high confidence, ⚠️ needs review, 📝 manual required).',
+				message: '🤖 <strong>Smart FHIR Mapping:</strong> Use auto-detection guidance and manual field mapping to transform your JSON payload into compliant FHIR ClaimResponse resources.',
 				type: 'info',
 				location: 'inputPane',
-				whenToDisplay: 'always',
-				displayCondition: '={{ $parameter["mode"] === "manual" }}'
-			},
-			{
-				message: '⚡ <strong>Smart Field Detection:</strong> Connect input data and switch to manual mode to see intelligent field suggestions based on your actual data structure.',
-				type: 'info',
-				location: 'inputPane',
-				whenToDisplay: 'beforeExecution',
-				displayCondition: '={{ $parameter["mode"] === "auto" }}'
+				whenToDisplay: 'always'
 			}
 		],
 		properties: [
 			{
-				displayName: 'Processing Mode',
-				name: 'mode',
+				displayName: 'Auto-Detection Helper',
+				name: 'autoDetectionResults',
 				type: 'options',
-				options: [
-					{
-						name: 'Auto-Detection Only',
-						value: 'auto',
-						description: 'Use automatic field detection without manual overrides'
-					},
-					{
-						name: 'Manual Override',
-						value: 'manual',
-						description: 'Configure custom field mappings'
-					},
-					{
-						name: 'Template Mode',
-						value: 'template',
-						description: 'Use pre-configured mapping template'
-					}
-				],
-				default: 'auto',
-				description: 'Choose how to handle field mapping'
-			},
-			{
-				displayName: 'Auto-Population Helper',
-				name: 'autoPopulationNotice',
-				type: 'notice',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
+				typeOptions: {
+					loadOptionsMethod: 'runAutoDetection'
 				},
 				default: '',
-				description: '💡 <strong>Auto-Population Available:</strong> Source field dropdowns below will show available fields from your input data. Auto-detected mappings will appear as suggested options.'
+				description: '🔍 <strong>Click the dropdown to see mapping examples</strong> and auto-detection guidance. Copy useful mapping patterns to the fields below.',
+				placeholder: 'Click here for auto-detection guidance and mapping examples...'
 			},
 			{
-				displayName: 'Manual Mappings',
+				displayName: 'Field Mappings',
 				name: 'manualMappings',
 				type: 'fixedCollection',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
-				},
 				placeholder: 'Add field mapping',
 				default: {},
 				typeOptions: {
@@ -182,6 +144,97 @@ export class FhirClaimResponse implements INodeType {
 
 	methods = {
 		loadOptions: {
+			async runAutoDetection(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				try {
+					// Provide Kenya IG-compliant claim response mapping guidance and examples
+					return [
+						{ name: '🇰🇪 Kenya IG ClaimResponse Mapping Guide', value: '', description: 'Auto-detection patterns for Kenya Health Information Exchange claim responses' },
+						{ name: '📋 Quick Start:', value: '', description: 'Copy the mapping patterns below to your manual fields' },
+
+						// Resource Core
+						{ name: '🆔 RESOURCE CORE', value: '', description: 'ClaimResponse resource identification' },
+						{ name: 'claim_response_id → id', value: 'claim_response_id|id|', description: 'Override auto-generated resource ID' },
+						{ name: 'status → status', value: 'status|status|', description: 'Claim response status (active, cancelled, draft, entered-in-error)' },
+						{ name: 'outcome → outcome', value: 'outcome|outcome|', description: 'Processing outcome (queued, complete, error, partial)' },
+
+						// Claim References
+						{ name: '📄 CLAIM REFERENCES', value: '', description: 'Original claim information' },
+						{ name: 'claim_id → request.reference', value: 'claim_id|request.reference|', description: 'Original claim reference (Claim/id)' },
+						{ name: 'claim_display → request.display', value: 'claim_display|request.display|', description: 'Original claim display name' },
+						{ name: 'requestor_id → requestor.reference', value: 'requestor_id|requestor.reference|', description: 'Requestor reference (Practitioner/id)' },
+
+						// Patient and Insurer
+						{ name: '👤 PATIENT & INSURER', value: '', description: 'Patient and insurance information' },
+						{ name: 'patient_id → patient.reference', value: 'patient_id|patient.reference|', description: 'Patient reference (Patient/id)' },
+						{ name: 'patient_name → patient.display', value: 'patient_name|patient.display|', description: 'Patient display name' },
+						{ name: 'insurer_id → insurer.reference', value: 'insurer_id|insurer.reference|', description: 'Insurer reference (Organization/id)' },
+						{ name: 'insurer_name → insurer.display', value: 'insurer_name|insurer.display|', description: 'Insurer display name' },
+
+						// Processing Information
+						{ name: '⚙️ PROCESSING INFO', value: '', description: 'Claim processing details' },
+						{ name: 'created_date → created', value: 'created_date|created|convertToFhirDate', description: 'Response creation date' },
+						{ name: 'use → use', value: 'use|use|', description: 'Use code (claim, preauthorization, predetermination)' },
+						{ name: 'disposition → disposition', value: 'disposition|disposition|', description: 'Processing disposition text' },
+
+						// Identifiers
+						{ name: '🏥 IDENTIFIERS', value: '', description: 'Claim response identifiers' },
+						{ name: 'response_identifier → identifier[0].value', value: 'response_identifier|identifier[0].value|', description: 'Response identifier value' },
+						{ name: 'response_system → identifier[0].system', value: 'response_system|identifier[0].system|', description: 'Response identifier system' },
+						{ name: 'response_use → identifier[0].use', value: 'response_use|identifier[0].use|', description: 'Identifier use (usual, official, temp)' },
+
+						// Financial Information
+						{ name: '💰 FINANCIAL DETAILS', value: '', description: 'Payment and adjudication amounts' },
+						{ name: 'payment_amount → payment.amount.value', value: 'payment_amount|payment.amount.value|', description: 'Payment amount value' },
+						{ name: 'payment_currency → payment.amount.currency', value: 'payment_currency|payment.amount.currency|', description: 'Payment currency code (KES, USD)' },
+						{ name: 'payment_date → payment.date', value: 'payment_date|payment.date|convertToFhirDate', description: 'Payment date' },
+						{ name: 'payment_type → payment.type.coding[0].code', value: 'payment_type|payment.type.coding[0].code|', description: 'Payment type code' },
+						{ name: 'payment_identifier → payment.identifier.value', value: 'payment_identifier|payment.identifier.value|', description: 'Payment identifier' },
+
+						// Item Adjudication
+						{ name: '📋 ITEM ADJUDICATION', value: '', description: 'Individual item processing results' },
+						{ name: 'item_sequence → item[0].itemSequence', value: 'item_sequence|item[0].itemSequence|', description: 'Item sequence number from claim' },
+						{ name: 'adjudication_category → item[0].adjudication[0].category.coding[0].code', value: 'adjudication_category|item[0].adjudication[0].category.coding[0].code|', description: 'Adjudication category code' },
+						{ name: 'adjudication_amount → item[0].adjudication[0].amount.value', value: 'adjudication_amount|item[0].adjudication[0].amount.value|', description: 'Adjudicated amount' },
+						{ name: 'adjudication_currency → item[0].adjudication[0].amount.currency', value: 'adjudication_currency|item[0].adjudication[0].amount.currency|', description: 'Adjudication currency' },
+
+						// Total Amounts
+						{ name: '💵 TOTAL AMOUNTS', value: '', description: 'Summary financial information' },
+						{ name: 'total_submitted → total[0].amount.value', value: 'total_submitted|total[0].amount.value|', description: 'Total submitted amount' },
+						{ name: 'total_category → total[0].category.coding[0].code', value: 'total_category|total[0].category.coding[0].code|', description: 'Total category code (submitted, eligible, benefit)' },
+						{ name: 'total_currency → total[0].amount.currency', value: 'total_currency|total[0].amount.currency|', description: 'Total amount currency' },
+
+						// Pre-Authorization
+						{ name: '🔑 PRE-AUTHORIZATION', value: '', description: 'Authorization information' },
+						{ name: 'preauth_ref → preAuthRef', value: 'preauth_ref|preAuthRef|', description: 'Pre-authorization reference number' },
+						{ name: 'preauth_period_start → preAuthPeriod.start', value: 'preauth_period_start|preAuthPeriod.start|convertToFhirDate', description: 'Pre-auth validity start' },
+						{ name: 'preauth_period_end → preAuthPeriod.end', value: 'preauth_period_end|preAuthPeriod.end|convertToFhirDate', description: 'Pre-auth validity end' },
+
+						// Insurance Coverage
+						{ name: '🛡️ INSURANCE COVERAGE', value: '', description: 'Insurance plan details' },
+						{ name: 'insurance_sequence → insurance[0].sequence', value: 'insurance_sequence|insurance[0].sequence|', description: 'Insurance sequence number' },
+						{ name: 'insurance_focal → insurance[0].focal', value: 'insurance_focal|insurance[0].focal|', description: 'Primary coverage indicator' },
+						{ name: 'coverage_reference → insurance[0].coverage.reference', value: 'coverage_reference|insurance[0].coverage.reference|', description: 'Coverage reference (Coverage/id)' },
+						{ name: 'coverage_display → insurance[0].coverage.display', value: 'coverage_display|insurance[0].coverage.display|', description: 'Coverage display name' },
+
+						// Error Information
+						{ name: '❌ ERROR HANDLING', value: '', description: 'Error and rejection details' },
+						{ name: 'error_code → error[0].code.coding[0].code', value: 'error_code|error[0].code.coding[0].code|', description: 'Error code' },
+						{ name: 'error_text → error[0].code.text', value: 'error_text|error[0].code.text|', description: 'Error description text' },
+						{ name: 'error_item_sequence → error[0].itemSequence', value: 'error_item_sequence|error[0].itemSequence|', description: 'Item sequence with error' },
+
+						// Processing Notes
+						{ name: '📝 PROCESSING NOTES', value: '', description: 'Additional processing information' },
+						{ name: 'process_note → processNote[0].text', value: 'process_note|processNote[0].text|', description: 'Processing note text' },
+						{ name: 'note_type → processNote[0].type', value: 'note_type|processNote[0].type|', description: 'Note type (display, print, printoper)' },
+						{ name: 'note_number → processNote[0].number', value: 'note_number|processNote[0].number|', description: 'Note sequence number' }
+					];
+				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : String(error);
+					return [
+						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load Kenya IG claim response mapping guide' }
+					];
+				}
+			},
 
 			async getClaimResponseFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return [
@@ -289,19 +342,15 @@ export class FhirClaimResponse implements INodeType {
 				const inputData = items[itemIndex].json;
 
 				// Get node parameters
-				const mode = this.getNodeParameter('mode', itemIndex) as string;
 				const options = this.getNodeParameter('options', itemIndex, {}) as any;
 
-				// Prepare user mappings for manual override mode
-				let userMappings = null;
-				if (mode === 'manual') {
-					const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
-					userMappings = manualMappings.mappingValues || [];
-				}
+				// Get user mappings (always in manual mode now)
+				const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
+				const userMappings = manualMappings.mappingValues || [];
 
 				// Transform the data
 				const transformOptions = {
-					mode: mode,
+					mode: 'manual',
 					includeDetailedMapping: options.includeDetailedMapping || false,
 					customId: options.customId || null
 				};
@@ -322,7 +371,7 @@ export class FhirClaimResponse implements INodeType {
 				// Add processing metadata
 				result.metadata.node_execution = {
 					itemIndex: itemIndex,
-					processingMode: mode,
+					processingMode: 'manual',
 					inputFieldCount: Object.keys(inputData).length,
 					timestamp: new Date().toISOString()
 				};

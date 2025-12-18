@@ -15,7 +15,7 @@ export class FhirEligibilityResponse implements INodeType {
 		name: 'fhirEligibilityResponse',
 		group: ['transform'],
 		version: 1,
-		icon: 'file:ruphasoft_icon.svg',
+		icon: 'fa:shield-alt',
 		description: 'Transform JSON payload to FHIR CoverageEligibilityResponse resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Eligibility Response',
@@ -25,66 +25,28 @@ export class FhirEligibilityResponse implements INodeType {
 		outputs: ['main'],
 		hints: [
 			{
-				message: '🤖 <strong>Auto-Population Active:</strong> Manual mapping source fields now show auto-detected options with confidence indicators (✅ high confidence, ⚠️ needs review, 📝 manual required).',
+				message: '🤖 <strong>Smart FHIR Mapping:</strong> Use auto-detection guidance and manual field mapping to transform your JSON payload into compliant FHIR CoverageEligibilityResponse resources.',
 				type: 'info',
 				location: 'inputPane',
-				whenToDisplay: 'always',
-				displayCondition: '={{ $parameter["mode"] === "manual" }}'
-			},
-			{
-				message: '⚡ <strong>Smart Field Detection:</strong> Connect input data and switch to manual mode to see intelligent field suggestions based on your actual data structure.',
-				type: 'info',
-				location: 'inputPane',
-				whenToDisplay: 'beforeExecution',
-				displayCondition: '={{ $parameter["mode"] === "auto" }}'
+				whenToDisplay: 'always'
 			}
 		],
 		properties: [
 			{
-				displayName: 'Processing Mode',
-				name: 'mode',
+				displayName: 'Auto-Detection Helper',
+				name: 'autoDetectionResults',
 				type: 'options',
-				options: [
-					{
-						name: 'Auto-Detection Only',
-						value: 'auto',
-						description: 'Use automatic field detection without manual overrides'
-					},
-					{
-						name: 'Manual Override',
-						value: 'manual',
-						description: 'Configure custom field mappings'
-					},
-					{
-						name: 'Template Mode',
-						value: 'template',
-						description: 'Use pre-configured mapping template'
-					}
-				],
-				default: 'auto',
-				description: 'Choose how to handle field mapping'
-			},
-			{
-				displayName: 'Auto-Population Helper',
-				name: 'autoPopulationNotice',
-				type: 'notice',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
+				typeOptions: {
+					loadOptionsMethod: 'runAutoDetection'
 				},
 				default: '',
-				description: '💡 <strong>Auto-Population Available:</strong> Source field dropdowns below will show available fields from your input data. Auto-detected mappings will appear as suggested options.'
+				description: '🔍 <strong>Click the dropdown to see mapping examples</strong> and auto-detection guidance. Copy useful mapping patterns to the fields below.',
+				placeholder: 'Click here for auto-detection guidance and mapping examples...'
 			},
 			{
-				displayName: 'Manual Mappings',
+				displayName: 'Field Mappings',
 				name: 'manualMappings',
 				type: 'fixedCollection',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
-				},
 				placeholder: 'Add field mapping',
 				default: {},
 				typeOptions: {
@@ -182,6 +144,93 @@ export class FhirEligibilityResponse implements INodeType {
 
 	methods = {
 		loadOptions: {
+			async runAutoDetection(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				try {
+					// Provide Kenya IG-compliant eligibility response mapping guidance and examples
+					return [
+						{ name: '🇰🇪 Kenya IG Eligibility Response Mapping Guide', value: '', description: 'Auto-detection patterns for Kenya Health Information Exchange eligibility responses' },
+						{ name: '📋 Quick Start:', value: '', description: 'Copy the mapping patterns below to your manual fields' },
+
+						// Resource Core
+						{ name: '🆔 RESOURCE CORE', value: '', description: 'Eligibility response resource identification' },
+						{ name: 'eligibility_response_id → id', value: 'eligibility_response_id|id|', description: 'Override auto-generated resource ID' },
+						{ name: 'status → status', value: 'status|status|', description: 'Response status (active, cancelled, draft, entered-in-error)' },
+						{ name: 'outcome → outcome', value: 'outcome|outcome|', description: 'Processing outcome (queued, complete, error, partial)' },
+
+						// Kenya HIE Identifiers
+						{ name: '🏥 KENYA HIE IDENTIFIERS', value: '', description: 'Healthcare system eligibility response IDs' },
+						{ name: 'fhir_eligibility_id → identifier[fhir_resource].value', value: 'fhir_eligibility_id|identifier[fhir_resource].value|', description: 'FHIR resource identifier' },
+						{ name: 'internal_eligibility_id → identifier[internal].value', value: 'internal_eligibility_id|identifier[internal].value|', description: 'Internal system eligibility ID' },
+						{ name: 'insurer_reference_id → identifier[insurer_ref].value', value: 'insurer_reference_id|identifier[insurer_ref].value|', description: 'Insurer reference number' },
+
+						// Request Processing
+						{ name: '📋 REQUEST PROCESSING', value: '', description: 'Eligibility request processing details' },
+						{ name: 'purpose → purpose[0]', value: 'purpose|purpose[0]|', description: 'Request purpose (auth-requirements, benefits, discovery, validation)' },
+						{ name: 'disposition → disposition', value: 'disposition|disposition|', description: 'Human readable result description' },
+						{ name: 'created_date → created', value: 'created_date|created|convertToFhirDate', description: 'Response creation date' },
+
+						// References
+						{ name: '👤 PATIENT REFERENCES', value: '', description: 'Patient identification for eligibility check' },
+						{ name: 'patient_id → patient.reference', value: 'patient_id|patient.reference|', description: 'Patient reference (Patient/id)' },
+						{ name: 'patient_name → patient.display', value: 'patient_name|patient.display|', description: 'Patient display name' },
+
+						// Insurer Information
+						{ name: '🏥 INSURER REFERENCES', value: '', description: 'Insurance provider information' },
+						{ name: 'insurer_id → insurer.reference', value: 'insurer_id|insurer.reference|', description: 'Insurer reference (Organization/id)' },
+						{ name: 'insurer_name → insurer.display', value: 'insurer_name|insurer.display|', description: 'Insurer organization name' },
+
+						// Request Reference
+						{ name: '📄 REQUEST REFERENCE', value: '', description: 'Original eligibility request' },
+						{ name: 'request_id → request.reference', value: 'request_id|request.reference|', description: 'Original request reference (CoverageEligibilityRequest/id)' },
+						{ name: 'request_display → request.display', value: 'request_display|request.display|', description: 'Request display name' },
+
+						// Service Period
+						{ name: '📅 SERVICE PERIOD', value: '', description: 'Eligibility check period' },
+						{ name: 'service_date → servicedDate', value: 'service_date|servicedDate|convertToFhirDate', description: 'Single service date' },
+						{ name: 'service_start → servicedPeriod.start', value: 'service_start|servicedPeriod.start|convertToFhirDate', description: 'Service period start' },
+						{ name: 'service_end → servicedPeriod.end', value: 'service_end|servicedPeriod.end|convertToFhirDate', description: 'Service period end' },
+
+						// Insurance Coverage
+						{ name: '🛡️ INSURANCE COVERAGE', value: '', description: 'Coverage details and status' },
+						{ name: 'coverage_id → insurance[0].coverage.reference', value: 'coverage_id|insurance[0].coverage.reference|', description: 'Coverage reference (Coverage/id)' },
+						{ name: 'coverage_name → insurance[0].coverage.display', value: 'coverage_name|insurance[0].coverage.display|', description: 'Coverage display name' },
+						{ name: 'coverage_inforce → insurance[0].inforce', value: 'coverage_inforce|insurance[0].inforce|', description: 'Coverage is currently in force (true/false)' },
+
+						// Benefit Period
+						{ name: '📅 BENEFIT PERIOD', value: '', description: 'Insurance benefit period' },
+						{ name: 'benefit_start → insurance[0].benefitPeriod.start', value: 'benefit_start|insurance[0].benefitPeriod.start|convertToFhirDate', description: 'Benefit period start date' },
+						{ name: 'benefit_end → insurance[0].benefitPeriod.end', value: 'benefit_end|insurance[0].benefitPeriod.end|convertToFhirDate', description: 'Benefit period end date' },
+
+						// Benefit Categories
+						{ name: '🏥 BENEFIT CATEGORIES', value: '', description: 'Service benefit categories' },
+						{ name: 'benefit_category → insurance[0].item[0].category.coding[0].code', value: 'benefit_category|insurance[0].item[0].category.coding[0].code|', description: 'Benefit category code' },
+						{ name: 'benefit_category_name → insurance[0].item[0].category.coding[0].display', value: 'benefit_category_name|insurance[0].item[0].category.coding[0].display|', description: 'Benefit category display name' },
+						{ name: 'benefit_network → insurance[0].item[0].network.coding[0].code', value: 'benefit_network|insurance[0].item[0].network.coding[0].code|', description: 'Network code (in, out)' },
+
+						// Financial Benefits
+						{ name: '💰 FINANCIAL BENEFITS', value: '', description: 'Benefit amounts and limits' },
+						{ name: 'benefit_type → insurance[0].item[0].benefit[0].type.coding[0].code', value: 'benefit_type|insurance[0].item[0].benefit[0].type.coding[0].code|', description: 'Benefit type (benefit, deductible, copay)' },
+						{ name: 'allowed_amount → insurance[0].item[0].benefit[0].allowedMoney.value', value: 'allowed_amount|insurance[0].item[0].benefit[0].allowedMoney.value|', description: 'Allowed monetary amount' },
+						{ name: 'allowed_currency → insurance[0].item[0].benefit[0].allowedMoney.currency', value: 'allowed_currency|insurance[0].item[0].benefit[0].allowedMoney.currency|', description: 'Currency code (KES, USD)' },
+						{ name: 'used_amount → insurance[0].item[0].benefit[0].usedMoney.value', value: 'used_amount|insurance[0].item[0].benefit[0].usedMoney.value|', description: 'Used monetary amount' },
+
+						// Error Handling
+						{ name: '❌ ERROR INFORMATION', value: '', description: 'Error codes and messages' },
+						{ name: 'error_code → error[0].code.coding[0].code', value: 'error_code|error[0].code.coding[0].code|', description: 'Error code' },
+						{ name: 'error_message → error[0].code.coding[0].display', value: 'error_message|error[0].code.coding[0].display|', description: 'Error message' },
+						{ name: 'error_system → error[0].code.coding[0].system', value: 'error_system|error[0].code.coding[0].system|', description: 'Error code system' },
+
+						// Pre-Authorization
+						{ name: '✅ PRE-AUTHORIZATION', value: '', description: 'Pre-authorization references' },
+						{ name: 'preauth_reference → preAuthRef[0]', value: 'preauth_reference|preAuthRef[0]|', description: 'Pre-authorization reference number' }
+					];
+				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : String(error);
+					return [
+						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load Kenya IG eligibility response mapping guide' }
+					];
+				}
+			},
 
 			async getEligibilityResponseFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return [
@@ -265,19 +314,15 @@ export class FhirEligibilityResponse implements INodeType {
 				const inputData = items[itemIndex].json;
 
 				// Get node parameters
-				const mode = this.getNodeParameter('mode', itemIndex) as string;
 				const options = this.getNodeParameter('options', itemIndex, {}) as any;
 
-				// Prepare user mappings for manual override mode
-				let userMappings = null;
-				if (mode === 'manual') {
-					const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
-					userMappings = manualMappings.mappingValues || [];
-				}
+				// Get user mappings (always in manual mode now)
+				const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
+				const userMappings = manualMappings.mappingValues || [];
 
 				// Transform the data
 				const transformOptions = {
-					mode: mode,
+					mode: 'manual',
 					includeDetailedMapping: options.includeDetailedMapping || false,
 					customId: options.customId || null
 				};
@@ -298,7 +343,7 @@ export class FhirEligibilityResponse implements INodeType {
 				// Add processing metadata
 				result.metadata.node_execution = {
 					itemIndex: itemIndex,
-					processingMode: mode,
+					processingMode: 'manual',
 					inputFieldCount: Object.keys(inputData).length,
 					timestamp: new Date().toISOString()
 				};

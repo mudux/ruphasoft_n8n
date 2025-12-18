@@ -16,7 +16,7 @@ export class FhirPatient implements INodeType {
 		name: 'fhirPatient',
 		group: ['transform'],
 		version: 1,
-		icon: 'file:ruphasoft_icon.svg',
+		icon: 'fa:user-md',
 		description: 'Transform JSON payload to FHIR Patient resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Patient',
@@ -147,30 +147,73 @@ export class FhirPatient implements INodeType {
 		loadOptions: {
 			async runAutoDetection(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				try {
-					// Since loadOptions doesn't have access to input data, provide guidance for manual configuration
+					// Provide Kenya IG-compliant mapping guidance and examples
 					return [
-						{ name: '🔍 Auto-Detection Guide', value: '', description: 'Run the node in auto mode first to see detected mappings, then copy them here' },
-						{ name: '📋 Manual Configuration Steps:', value: '', description: '1. Set mode to Auto-Detection → 2. Execute node → 3. Check output for detected mappings → 4. Switch to Manual mode → 5. Add mappings below' },
-						{ name: '💡 Common Patient Fields:', value: '', description: 'Use these as examples for your source fields:' },
-						{ name: 'patient_id → identifier[0].value', value: 'patient_id|identifier[0].value|', description: 'Patient identifier mapping example' },
-						{ name: 'first_name → name[0].given[0]', value: 'first_name|name[0].given[0]|formatName', description: 'First name mapping example' },
-						{ name: 'last_name → name[0].family', value: 'last_name|name[0].family|formatName', description: 'Last name mapping example' },
-						{ name: 'birth_date → birthDate', value: 'birth_date|birthDate|convertToFhirDate', description: 'Birth date mapping example' },
-						{ name: 'gender → gender', value: 'gender|gender|normalizeGender', description: 'Gender mapping example' },
-						{ name: 'phone → telecom[0].value', value: 'phone|telecom[0].value|formatPhoneNumber', description: 'Phone mapping example' },
-						{ name: 'email → telecom[1].value', value: 'email|telecom[1].value|', description: 'Email mapping example' },
-						{ name: 'address → address[0].line[0]', value: 'address|address[0].line[0]|', description: 'Address mapping example' }
+						{ name: '🇰🇪 Kenya IG Patient Mapping Guide', value: '', description: 'Auto-detection patterns for Kenya Health Information Exchange' },
+						{ name: '📋 Quick Start:', value: '', description: 'Copy the mapping patterns below to your manual fields' },
+
+						// Resource Core
+						{ name: '🆔 RESOURCE CORE', value: '', description: 'Patient resource identification' },
+						{ name: 'patient_id → id', value: 'patient_id|id|', description: 'Override auto-generated resource ID' },
+						{ name: 'active → active', value: 'active|active|', description: 'Patient active status (true/false)' },
+
+						// Kenya HIE Identifiers (Priority)
+						{ name: '🏥 KENYA HIE IDENTIFIERS', value: '', description: 'Government and healthcare system IDs' },
+						{ name: 'sha_number → identifier[sha_number].value', value: 'sha_number|identifier[sha_number].value|', description: 'SHA Number for Kenya HIE' },
+						{ name: 'cr_number → identifier[cr_number].value', value: 'cr_number|identifier[cr_number].value|', description: 'Civil Registration Number' },
+						{ name: 'national_id → identifier[national_id].value', value: 'national_id|identifier[national_id].value|', description: 'Kenya National ID' },
+						{ name: 'birth_certificate → identifier[birth_certificate].value', value: 'birth_certificate|identifier[birth_certificate].value|', description: 'Birth Certificate Number' },
+						{ name: 'passport → identifier[passport].value', value: 'passport|identifier[passport].value|', description: 'Passport Number' },
+
+						// Healthcare Identifiers
+						{ name: '🏥 HEALTHCARE IDENTIFIERS', value: '', description: 'Medical and insurance IDs' },
+						{ name: 'mrn → identifier[internal].value', value: 'mrn|identifier[internal].value|', description: 'Medical Record Number' },
+						{ name: 'insurance_id → identifier[default_insurance_no].value', value: 'insurance_id|identifier[default_insurance_no].value|', description: 'Insurance Member Number' },
+						{ name: 'household_number → identifier[household_number].value', value: 'household_number|identifier[household_number].value|', description: 'Household Number' },
+						{ name: 'kra_pin → identifier[kra_pin].value', value: 'kra_pin|identifier[kra_pin].value|', description: 'KRA PIN Number' },
+
+						// Demographics
+						{ name: '👤 DEMOGRAPHICS', value: '', description: 'Patient demographic information' },
+						{ name: 'first_name → name[0].given[0]', value: 'first_name|name[0].given[0]|formatName', description: 'First name with formatting' },
+						{ name: 'last_name → name[0].family', value: 'last_name|name[0].family|formatName', description: 'Family name with formatting' },
+						{ name: 'middle_name → name[0].given[1]', value: 'middle_name|name[0].given[1]|formatName', description: 'Middle name' },
+						{ name: 'full_name → name[0].text', value: 'full_name|name[0].text|', description: 'Full display name' },
+						{ name: 'date_of_birth → birthDate', value: 'date_of_birth|birthDate|convertToFhirDate', description: 'Birth date in FHIR format' },
+						{ name: 'gender → gender', value: 'gender|gender|normalizeGender', description: 'Gender normalization' },
+
+						// Contact Information
+						{ name: '📞 CONTACT INFORMATION', value: '', description: 'Phone, email, and communication' },
+						{ name: 'phone → telecom[0].value', value: 'phone|telecom[0].value|formatPhoneNumber', description: 'Primary phone number' },
+						{ name: 'mobile → identifier[mobile].value', value: 'mobile|identifier[mobile].value|formatPhoneNumber', description: 'Mobile as identifier' },
+						{ name: 'email → telecom[1].value', value: 'email|telecom[1].value|', description: 'Primary email address' },
+
+						// Kenya Address
+						{ name: '📍 KENYA ADDRESS', value: '', description: 'Address with Kenya-specific fields' },
+						{ name: 'address → address[0].line[0]', value: 'address|address[0].line[0]|', description: 'Primary address line' },
+						{ name: 'city → address[0].city', value: 'city|address[0].city|', description: 'City/town' },
+						{ name: 'county → address[0].state', value: 'county|address[0].state|', description: 'Kenya county' },
+						{ name: 'village_estate → extension[village_estate].valueString', value: 'village_estate|extension[village_estate].valueString|', description: 'Village/estate extension' },
+
+						// Emergency Contact
+						{ name: '🚨 EMERGENCY CONTACT', value: '', description: 'Emergency contact person' },
+						{ name: 'emergency_contact_name → contact[0].name.text', value: 'emergency_contact_name|contact[0].name.text|', description: 'Emergency contact name' },
+						{ name: 'emergency_contact_phone → contact[0].telecom[0].value', value: 'emergency_contact_phone|contact[0].telecom[0].value|formatPhoneNumber', description: 'Emergency contact phone' },
+						{ name: 'emergency_contact_relationship → contact[0].relationship[0].text', value: 'emergency_contact_relationship|contact[0].relationship[0].text|', description: 'Relationship to patient' }
 					];
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : String(error);
 					return [
-						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load auto-detection guide' }
+						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load Kenya IG mapping guide' }
 					];
 				}
 			},
 
 			async getPatientFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return [
+					// Resource Core
+					{ name: 'Resource ID (Override auto-generated)', value: 'id' },
+					{ name: 'Active Status', value: 'active' },
+
 					// Name fields
 					{ name: 'Name - Family Name', value: 'name[0].family' },
 					{ name: 'Name - Given Name (First)', value: 'name[0].given[0]' },
@@ -184,41 +227,74 @@ export class FhirPatient implements INodeType {
 					{ name: 'Deceased - Boolean', value: 'deceasedBoolean' },
 					{ name: 'Deceased - Date Time', value: 'deceasedDateTime' },
 
-					// Contact Information
-					{ name: 'Telecom - Phone', value: 'telecom[0].value' },
-					{ name: 'Telecom - Email', value: 'telecom[1].value' },
-					{ name: 'Telecom - System (phone, email, fax)', value: 'telecom[0].system' },
-					{ name: 'Telecom - Use (home, work, temp)', value: 'telecom[0].use' },
+					// Kenya IG Identifiers - Primary Government IDs
+					{ name: 'SHA Number (Kenya HIE)', value: 'identifier[sha_number].value' },
+					{ name: 'CR Number (Civil Registration)', value: 'identifier[cr_number].value' },
+					{ name: 'National ID (Kenya)', value: 'identifier[national_id].value' },
+					{ name: 'Birth Certificate Number', value: 'identifier[birth_certificate].value' },
+					{ name: 'Passport Number', value: 'identifier[passport].value' },
+					{ name: 'Mamatoto Program ID', value: 'identifier[mamatoto].value' },
 
-					// Address
+					// Kenya IG Identifiers - Healthcare & Insurance
+					{ name: 'Medical Record Number (MRN)', value: 'identifier[internal].value' },
+					{ name: 'Insurance Member Number', value: 'identifier[default_insurance_no].value' },
+					{ name: 'Household Number', value: 'identifier[household_number].value' },
+					{ name: 'KRA PIN', value: 'identifier[kra_pin].value' },
+
+					// Kenya IG Identifiers - Contact & System
+					{ name: 'Mobile Phone (as identifier)', value: 'identifier[mobile].value' },
+					{ name: 'Phone Number (as identifier)', value: 'identifier[phone].value' },
+					{ name: 'Email Address (as identifier)', value: 'identifier[email].value' },
+					{ name: 'External System ID', value: 'identifier[external_no].value' },
+					{ name: 'RUPHAsoft UUID', value: 'identifier[rupha_uuid].value' },
+
+					// Generic Identifier Fields (for custom mappings)
+					{ name: 'Identifier[0] - Value', value: 'identifier[0].value' },
+					{ name: 'Identifier[0] - System', value: 'identifier[0].system' },
+					{ name: 'Identifier[0] - Type Text', value: 'identifier[0].type.text' },
+					{ name: 'Identifier[0] - Use', value: 'identifier[0].use' },
+					{ name: 'Identifier[1] - Value', value: 'identifier[1].value' },
+					{ name: 'Identifier[1] - System', value: 'identifier[1].system' },
+					{ name: 'Identifier[2] - Value', value: 'identifier[2].value' },
+
+					// Contact Information
+					{ name: 'Phone Number (Primary)', value: 'telecom[0].value' },
+					{ name: 'Email Address (Primary)', value: 'telecom[1].value' },
+					{ name: 'Telecom[0] - System (phone, email, fax)', value: 'telecom[0].system' },
+					{ name: 'Telecom[0] - Use (home, work, mobile)', value: 'telecom[0].use' },
+					{ name: 'Telecom[1] - System', value: 'telecom[1].system' },
+					{ name: 'Telecom[1] - Use', value: 'telecom[1].use' },
+
+					// Kenya IG Address Extensions
 					{ name: 'Address - Line 1', value: 'address[0].line[0]' },
 					{ name: 'Address - Line 2', value: 'address[0].line[1]' },
 					{ name: 'Address - City', value: 'address[0].city' },
-					{ name: 'Address - State/Province', value: 'address[0].state' },
+					{ name: 'Address - County (Kenya)', value: 'address[0].state' },
 					{ name: 'Address - Postal Code', value: 'address[0].postalCode' },
 					{ name: 'Address - Country', value: 'address[0].country' },
 					{ name: 'Address - Use (home, work, temp)', value: 'address[0].use' },
 
-					// Identifiers
-					{ name: 'Identifier - Value (MRN, SSN)', value: 'identifier[0].value' },
-					{ name: 'Identifier - System (namespace)', value: 'identifier[0].system' },
-					{ name: 'Identifier - Type', value: 'identifier[0].type.text' },
-					{ name: 'Identifier - Use (usual, official, temp)', value: 'identifier[0].use' },
+					// Kenya IG Extensions
+					{ name: 'County Extension', value: 'extension[county].valueString' },
+					{ name: 'Village/Estate Extension', value: 'extension[village_estate].valueString' },
+					{ name: 'Location Extension', value: 'extension[location].valueString' },
+					{ name: 'Biometric Verified Extension', value: 'extension[biometrics_verified].valueBoolean' },
 
-					// Additional Fields
-					{ name: 'Active Status', value: 'active' },
-					{ name: 'Marital Status', value: 'maritalStatus.text' },
+					// Additional Demographics
+					{ name: 'Marital Status - Text', value: 'maritalStatus.text' },
+					{ name: 'Marital Status - Code', value: 'maritalStatus.coding[0].code' },
 					{ name: 'Multiple Birth - Boolean', value: 'multipleBirthBoolean' },
 					{ name: 'Multiple Birth - Integer', value: 'multipleBirthInteger' },
 
-					// Contact Person
-					{ name: 'Contact - Name', value: 'contact[0].name.text' },
-					{ name: 'Contact - Relationship', value: 'contact[0].relationship[0].text' },
-					{ name: 'Contact - Phone', value: 'contact[0].telecom[0].value' },
-					{ name: 'Contact - Gender', value: 'contact[0].gender' },
+					// Contact Person (Emergency Contact)
+					{ name: 'Emergency Contact - Name', value: 'contact[0].name.text' },
+					{ name: 'Emergency Contact - Relationship', value: 'contact[0].relationship[0].text' },
+					{ name: 'Emergency Contact - Phone', value: 'contact[0].telecom[0].value' },
+					{ name: 'Emergency Contact - Gender', value: 'contact[0].gender' },
 
-					// Communication
-					{ name: 'Communication - Language', value: 'communication[0].language.text' },
+					// Communication Preferences
+					{ name: 'Preferred Language - Text', value: 'communication[0].language.text' },
+					{ name: 'Preferred Language - Code', value: 'communication[0].language.coding[0].code' },
 					{ name: 'Communication - Preferred', value: 'communication[0].preferred' },
 				];
 			}
