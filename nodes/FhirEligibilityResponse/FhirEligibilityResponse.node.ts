@@ -23,6 +23,22 @@ export class FhirEligibilityResponse implements INodeType {
 		},
 		inputs: ['main'],
 		outputs: ['main'],
+		hints: [
+			{
+				message: '🤖 <strong>Auto-Population Active:</strong> Manual mapping source fields now show auto-detected options with confidence indicators (✅ high confidence, ⚠️ needs review, 📝 manual required).',
+				type: 'info',
+				location: 'inputPane',
+				whenToDisplay: 'always',
+				displayCondition: '={{ $parameter["mode"] === "manual" }}'
+			},
+			{
+				message: '⚡ <strong>Smart Field Detection:</strong> Connect input data and switch to manual mode to see intelligent field suggestions based on your actual data structure.',
+				type: 'info',
+				location: 'inputPane',
+				whenToDisplay: 'beforeExecution',
+				displayCondition: '={{ $parameter["mode"] === "auto" }}'
+			}
+		],
 		properties: [
 			{
 				displayName: 'Processing Mode',
@@ -49,6 +65,18 @@ export class FhirEligibilityResponse implements INodeType {
 				description: 'Choose how to handle field mapping'
 			},
 			{
+				displayName: 'Auto-Population Helper',
+				name: 'autoPopulationNotice',
+				type: 'notice',
+				displayOptions: {
+					show: {
+						mode: ['manual']
+					}
+				},
+				default: '',
+				description: '💡 <strong>Auto-Population Available:</strong> Source field dropdowns below will show available fields from your input data. Auto-detected mappings will appear as suggested options.'
+			},
+			{
 				displayName: 'Manual Mappings',
 				name: 'manualMappings',
 				type: 'fixedCollection',
@@ -72,8 +100,8 @@ export class FhirEligibilityResponse implements INodeType {
 								name: 'sourceField',
 								type: 'string',
 								default: '',
-								placeholder: 'eligibility_status',
-								description: 'The field name from your input data'
+								description: 'Enter the field name from your input data (e.g., eligibility_status, member_id, coverage_id)',
+								placeholder: 'eligibility_status'
 							},
 							{
 								displayName: 'FHIR Path',
@@ -154,6 +182,7 @@ export class FhirEligibilityResponse implements INodeType {
 
 	methods = {
 		loadOptions: {
+
 			async getEligibilityResponseFhirPaths(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return [
 					// Core Response Fields

@@ -26,66 +26,28 @@ export class FhirPatient implements INodeType {
 		outputs: ['main'],
 		hints: [
 			{
-				message: '🤖 <strong>Auto-Population Active:</strong> Manual mapping source fields now show auto-detected options with confidence indicators (✅ high confidence, ⚠️ needs review, 📝 manual required).',
+				message: '🤖 <strong>Smart FHIR Mapping:</strong> Use auto-detection guidance and manual field mapping to transform your JSON payload into compliant FHIR Patient resources.',
 				type: 'info',
 				location: 'inputPane',
-				whenToDisplay: 'always',
-				displayCondition: '={{ $parameter["mode"] === "manual" }}'
-			},
-			{
-				message: '⚡ <strong>Smart Field Detection:</strong> Connect input data and switch to manual mode to see intelligent field suggestions based on your actual data structure.',
-				type: 'info',
-				location: 'inputPane',
-				whenToDisplay: 'beforeExecution',
-				displayCondition: '={{ $parameter["mode"] === "auto" }}'
+				whenToDisplay: 'always'
 			}
 		],
 		properties: [
 			{
-				displayName: 'Processing Mode',
-				name: 'mode',
+				displayName: 'Auto-Detection Helper',
+				name: 'autoDetectionResults',
 				type: 'options',
-				options: [
-					{
-						name: 'Auto-Detection Only',
-						value: 'auto',
-						description: 'Use automatic field detection without manual overrides'
-					},
-					{
-						name: 'Manual Override',
-						value: 'manual',
-						description: 'Configure custom field mappings'
-					},
-					{
-						name: 'Template Mode',
-						value: 'template',
-						description: 'Use pre-configured mapping template'
-					}
-				],
-				default: 'auto',
-				description: 'Choose how to handle field mapping'
-			},
-			{
-				displayName: 'Auto-Population Helper',
-				name: 'autoPopulationNotice',
-				type: 'notice',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
+				typeOptions: {
+					loadOptionsMethod: 'runAutoDetection'
 				},
 				default: '',
-				description: '💡 <strong>Auto-Population Available:</strong> Source field dropdowns below will show available fields from your input data. Auto-detected mappings will appear as suggested options.'
+				description: '🔍 <strong>Click the dropdown to see mapping examples</strong> and auto-detection guidance. Copy useful mapping patterns to the fields below.',
+				placeholder: 'Click here for auto-detection guidance and mapping examples...'
 			},
 			{
-				displayName: 'Manual Mappings',
+				displayName: 'Field Mappings',
 				name: 'manualMappings',
 				type: 'fixedCollection',
-				displayOptions: {
-					show: {
-						mode: ['manual']
-					}
-				},
 				placeholder: 'Add field mapping',
 				default: {},
 				typeOptions: {
@@ -99,13 +61,10 @@ export class FhirPatient implements INodeType {
 							{
 								displayName: 'Source Field',
 								name: 'sourceField',
-								type: 'options',
-								typeOptions: {
-									loadOptionsMethod: 'getAvailableSourceFields'
-								},
+								type: 'string',
 								default: '',
-								description: 'Select a common field or type a custom field name from your input data',
-								placeholder: 'Select field or type custom name...'
+								description: 'Enter the field name from your input data (e.g., patient_id, first_name, dob)',
+								placeholder: 'patient_id'
 							},
 							{
 								displayName: 'FHIR Path',
@@ -186,33 +145,26 @@ export class FhirPatient implements INodeType {
 
 	methods = {
 		loadOptions: {
-			async getAvailableSourceFields(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+			async runAutoDetection(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				try {
-					// In loadOptions context, we provide common healthcare field examples
-					// Real auto-detection happens during execution with actual input data
+					// Since loadOptions doesn't have access to input data, provide guidance for manual configuration
 					return [
-						// Common patient fields with visual indicators for user guidance
-						{ name: '✅ patient_id (Common field)', value: 'patient_id', description: 'Patient identifier field' },
-						{ name: '✅ patient_first_name (Common field)', value: 'patient_first_name', description: 'Patient first name field' },
-						{ name: '✅ patient_last_name (Common field)', value: 'patient_last_name', description: 'Patient last name field' },
-						{ name: '✅ first_name (Common field)', value: 'first_name', description: 'First name field' },
-						{ name: '✅ last_name (Common field)', value: 'last_name', description: 'Last name field' },
-						{ name: '✅ full_name (Common field)', value: 'full_name', description: 'Full name field' },
-						{ name: '✅ birth_date (Common field)', value: 'birth_date', description: 'Birth date field' },
-						{ name: '✅ dob (Common field)', value: 'dob', description: 'Date of birth field' },
-						{ name: '✅ gender (Common field)', value: 'gender', description: 'Gender field' },
-						{ name: '✅ phone (Common field)', value: 'phone', description: 'Phone number field' },
-						{ name: '✅ email (Common field)', value: 'email', description: 'Email address field' },
-						{ name: '✅ address (Common field)', value: 'address', description: 'Address field' },
-						{ name: '✅ mrn (Common field)', value: 'mrn', description: 'Medical record number field' },
-						{ name: '✅ ssn (Common field)', value: 'ssn', description: 'Social security number field' },
-						{ name: '📝 Custom field (type manually)', value: '', description: 'Enter a custom field name from your input data' }
+						{ name: '🔍 Auto-Detection Guide', value: '', description: 'Run the node in auto mode first to see detected mappings, then copy them here' },
+						{ name: '📋 Manual Configuration Steps:', value: '', description: '1. Set mode to Auto-Detection → 2. Execute node → 3. Check output for detected mappings → 4. Switch to Manual mode → 5. Add mappings below' },
+						{ name: '💡 Common Patient Fields:', value: '', description: 'Use these as examples for your source fields:' },
+						{ name: 'patient_id → identifier[0].value', value: 'patient_id|identifier[0].value|', description: 'Patient identifier mapping example' },
+						{ name: 'first_name → name[0].given[0]', value: 'first_name|name[0].given[0]|formatName', description: 'First name mapping example' },
+						{ name: 'last_name → name[0].family', value: 'last_name|name[0].family|formatName', description: 'Last name mapping example' },
+						{ name: 'birth_date → birthDate', value: 'birth_date|birthDate|convertToFhirDate', description: 'Birth date mapping example' },
+						{ name: 'gender → gender', value: 'gender|gender|normalizeGender', description: 'Gender mapping example' },
+						{ name: 'phone → telecom[0].value', value: 'phone|telecom[0].value|formatPhoneNumber', description: 'Phone mapping example' },
+						{ name: 'email → telecom[1].value', value: 'email|telecom[1].value|', description: 'Email mapping example' },
+						{ name: 'address → address[0].line[0]', value: 'address|address[0].line[0]|', description: 'Address mapping example' }
 					];
-
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : String(error);
 					return [
-						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load field options' }
+						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load auto-detection guide' }
 					];
 				}
 			},
@@ -283,19 +235,15 @@ export class FhirPatient implements INodeType {
 				const inputData = items[itemIndex].json;
 
 				// Get node parameters
-				const mode = this.getNodeParameter('mode', itemIndex) as string;
 				const options = this.getNodeParameter('options', itemIndex, {}) as any;
 
-				// Prepare user mappings for manual override mode
-				let userMappings = null;
-				if (mode === 'manual') {
-					const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
-					userMappings = manualMappings.mappingValues || [];
-				}
+				// Get user mappings (always in manual mode now)
+				const manualMappings = this.getNodeParameter('manualMappings', itemIndex, {}) as any;
+				const userMappings = manualMappings.mappingValues || [];
 
 				// Transform the data
 				const transformOptions = {
-					mode: mode,
+					mode: 'manual',
 					includeDetailedMapping: options.includeDetailedMapping || false,
 					customId: options.customId || null
 				};
@@ -316,7 +264,7 @@ export class FhirPatient implements INodeType {
 				// Add processing metadata
 				result.metadata.node_execution = {
 					itemIndex: itemIndex,
-					processingMode: mode,
+					processingMode: 'manual',
 					inputFieldCount: Object.keys(inputData).length,
 					timestamp: new Date().toISOString()
 				};
