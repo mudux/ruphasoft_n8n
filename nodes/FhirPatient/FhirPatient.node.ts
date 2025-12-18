@@ -210,8 +210,9 @@ export class FhirPatient implements INodeType {
 					];
 
 				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : String(error);
 					return [
-						{ name: `❌ Error: ${error.message}`, value: '', description: 'Failed to load field options' }
+						{ name: `❌ Error: ${errorMessage}`, value: '', description: 'Failed to load field options' }
 					];
 				}
 			},
