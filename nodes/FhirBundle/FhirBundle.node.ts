@@ -58,6 +58,9 @@ export class FhirBundle implements INodeType {
 				},
 				placeholder: 'Add field mapping',
 				default: {},
+				typeOptions: {
+					multipleValues: true,
+				},
 				options: [
 					{
 						displayName: 'Field Mappings',
