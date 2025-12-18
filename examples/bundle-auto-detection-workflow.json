@@ -1,0 +1,109 @@
+{
+  "name": "FHIR Bundle Transformation - Auto Detection",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "transaction_id",
+              "value": "TXN-2024-AUTO-001"
+            },
+            {
+              "name": "bundle_type",
+              "value": "transaction"
+            },
+            {
+              "name": "timestamp",
+              "value": "2024-12-20T15:45:00Z"
+            },
+            {
+              "name": "total_entries",
+              "value": "2"
+            },
+            {
+              "name": "entry_resource_type",
+              "value": "Patient"
+            },
+            {
+              "name": "full_url",
+              "value": "http://fhir.hospital.org/Patient/patient-001"
+            },
+            {
+              "name": "method",
+              "value": "POST"
+            },
+            {
+              "name": "request_url",
+              "value": "Patient"
+            },
+            {
+              "name": "response_status",
+              "value": "201"
+            },
+            {
+              "name": "meta_version",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "id": "bundle-auto-data",
+      "name": "Healthcare Bundle Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "includeDetailedMapping": true
+        }
+      },
+      "id": "fhir-bundle-auto",
+      "name": "FHIR Bundle Auto-Detection",
+      "type": "fhir-n8n-custom-nodes.fhirBundle",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-bundle",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Healthcare Bundle Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Healthcare Bundle Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR Bundle Auto-Detection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {
+    "created": "2024-12-18T08:30:00Z",
+    "description": "Demonstrates Bundle auto-detection with proper healthcare transaction data"
+  }
+}

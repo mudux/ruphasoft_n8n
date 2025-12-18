@@ -1,0 +1,232 @@
+{
+  "name": "FHIR Patient - Complex Manual Override",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "full_name_field",
+              "value": "Dr. Sarah Elizabeth Johnson-Smith"
+            },
+            {
+              "name": "birth_info",
+              "value": "05/15/1985"
+            },
+            {
+              "name": "sex_code",
+              "value": "F"
+            },
+            {
+              "name": "primary_contact",
+              "value": "555-987-6543"
+            },
+            {
+              "name": "backup_phone",
+              "value": "555-123-4567"
+            },
+            {
+              "name": "email_address",
+              "value": "sarah.johnson@email.com"
+            },
+            {
+              "name": "street_address_1",
+              "value": "456 Oak Avenue, Apt 3B"
+            },
+            {
+              "name": "street_address_2",
+              "value": "Medical District"
+            },
+            {
+              "name": "city_name",
+              "value": "Metropolitan City"
+            },
+            {
+              "name": "state_province",
+              "value": "California"
+            },
+            {
+              "name": "postal_zip",
+              "value": "90210-1234"
+            },
+            {
+              "name": "country_code",
+              "value": "US"
+            },
+            {
+              "name": "medical_record_num",
+              "value": "MRN-98765"
+            },
+            {
+              "name": "ssn_last_4",
+              "value": "4321"
+            },
+            {
+              "name": "emergency_contact_name",
+              "value": "John Johnson (Husband)"
+            },
+            {
+              "name": "emergency_contact_phone",
+              "value": "555-555-5555"
+            },
+            {
+              "name": "marital_status_code",
+              "value": "M"
+            }
+          ]
+        }
+      },
+      "id": "complex-patient-data",
+      "name": "Complex Patient Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "manualMappings": {
+          "mappingValues": [
+            {
+              "sourceField": "full_name_field",
+              "fhirPath": "name[0].text",
+              "transformation": "formatName",
+              "action": "override"
+            },
+            {
+              "sourceField": "birth_info",
+              "fhirPath": "birthDate",
+              "transformation": "convertToFhirDate",
+              "action": "override"
+            },
+            {
+              "sourceField": "sex_code",
+              "fhirPath": "gender",
+              "transformation": "normalizeGender",
+              "action": "override"
+            },
+            {
+              "sourceField": "primary_contact",
+              "fhirPath": "telecom[0].value",
+              "transformation": "formatPhoneNumber",
+              "action": "override"
+            },
+            {
+              "sourceField": "backup_phone",
+              "fhirPath": "telecom[1].value",
+              "transformation": "formatPhoneNumber",
+              "action": "override"
+            },
+            {
+              "sourceField": "email_address",
+              "fhirPath": "telecom[2].value",
+              "transformation": "toLowerCase",
+              "action": "override"
+            },
+            {
+              "sourceField": "street_address_1",
+              "fhirPath": "address[0].line[0]",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "street_address_2",
+              "fhirPath": "address[0].line[1]",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "city_name",
+              "fhirPath": "address[0].city",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "state_province",
+              "fhirPath": "address[0].state",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "postal_zip",
+              "fhirPath": "address[0].postalCode",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "country_code",
+              "fhirPath": "address[0].country",
+              "transformation": "toUpperCase",
+              "action": "override"
+            },
+            {
+              "sourceField": "medical_record_num",
+              "fhirPath": "identifier[0].value",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "emergency_contact_name",
+              "fhirPath": "contact[0].name.text",
+              "transformation": "formatName",
+              "action": "override"
+            },
+            {
+              "sourceField": "emergency_contact_phone",
+              "fhirPath": "contact[0].telecom[0].value",
+              "transformation": "formatPhoneNumber",
+              "action": "override"
+            }
+          ]
+        },
+        "options": {
+          "includeDetailedMapping": true,
+          "customId": "patient-complex-001"
+        }
+      },
+      "id": "fhir-patient-complex",
+      "name": "FHIR Patient Complex",
+      "type": "fhir-n8n-custom-nodes.fhirPatient",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-patient",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Complex Patient Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complex Patient Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR Patient Complex",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {
+    "created": "2024-12-18T08:35:00Z",
+    "description": "Complex patient data transformation with extensive manual field mappings and transformations"
+  }
+}

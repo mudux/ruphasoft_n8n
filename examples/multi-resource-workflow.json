@@ -1,0 +1,324 @@
+{
+  "name": "Multi-Resource FHIR Transformation Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "patient_first_name",
+              "value": "Emma"
+            },
+            {
+              "name": "patient_last_name",
+              "value": "Wilson"
+            },
+            {
+              "name": "dob",
+              "value": "1988-03-12"
+            },
+            {
+              "name": "patient_gender",
+              "value": "F"
+            },
+            {
+              "name": "mrn",
+              "value": "MRN-54321"
+            },
+            {
+              "name": "phone",
+              "value": "555-777-8888"
+            },
+            {
+              "name": "appointment_datetime",
+              "value": "2024-12-23T11:00:00Z"
+            },
+            {
+              "name": "appointment_status",
+              "value": "booked"
+            },
+            {
+              "name": "practitioner_id",
+              "value": "Practitioner/dr-martinez"
+            },
+            {
+              "name": "visit_reason",
+              "value": "Annual physical examination"
+            },
+            {
+              "name": "claim_id",
+              "value": "CLM-EMMA-2024-999"
+            },
+            {
+              "name": "claim_total",
+              "value": "275.00"
+            },
+            {
+              "name": "insurance_paid",
+              "value": "220.00"
+            }
+          ]
+        }
+      },
+      "id": "combined-healthcare-data",
+      "name": "Combined Healthcare Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "includeDetailedMapping": false,
+          "customId": "patient-emma-001"
+        }
+      },
+      "id": "fhir-patient-multi",
+      "name": "FHIR Patient",
+      "type": "fhir-n8n-custom-nodes.fhirPatient",
+      "typeVersion": 1,
+      "position": [640, 200]
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "customId": "appointment-emma-001"
+        }
+      },
+      "id": "fhir-appointment-multi",
+      "name": "FHIR Appointment",
+      "type": "fhir-n8n-custom-nodes.fhirAppointment",
+      "typeVersion": 1,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "customId": "claim-emma-001"
+        }
+      },
+      "id": "fhir-claimresponse-multi",
+      "name": "FHIR ClaimResponse",
+      "type": "fhir-n8n-custom-nodes.fhirClaimResponse",
+      "typeVersion": 1,
+      "position": [640, 600]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "manualMappings": {
+          "mappingValues": [
+            {
+              "sourceField": "patient_resources",
+              "fhirPath": "entry[0].resource",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "appointment_resources",
+              "fhirPath": "entry[1].resource",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "claim_resources",
+              "fhirPath": "entry[2].resource",
+              "transformation": "",
+              "action": "override"
+            }
+          ]
+        },
+        "options": {
+          "customId": "bundle-emma-complete"
+        }
+      },
+      "id": "fhir-bundle-multi",
+      "name": "FHIR Bundle Combiner",
+      "type": "fhir-n8n-custom-nodes.fhirBundle",
+      "typeVersion": 1,
+      "position": [860, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Combine all FHIR resources into bundle-ready format\nconst patientResource = items[0].json.fhir_resource;\nconst appointmentResource = items[1].json.fhir_resource;\nconst claimResource = items[2].json.fhir_resource;\n\n// Create bundle structure\nreturn [{\n  json: {\n    bundle_type: \"collection\",\n    timestamp: new Date().toISOString(),\n    total_entries: \"3\",\n    patient_resources: patientResource,\n    appointment_resources: appointmentResource,\n    claim_resources: claimResource,\n    entry_1_fullurl: `Patient/${patientResource.id}`,\n    entry_2_fullurl: `Appointment/${appointmentResource.id}`,\n    entry_3_fullurl: `ClaimResponse/${claimResource.id}`\n  }\n}];"
+      },
+      "id": "resource-combiner",
+      "name": "Resource Combiner",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 400]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-multi",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "validation_check",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "validation-filter",
+      "name": "Validation Filter",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "workflow_status",
+              "value": "completed"
+            },
+            {
+              "name": "resources_created",
+              "value": "4"
+            },
+            {
+              "name": "completion_time",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "success-output",
+      "name": "Success Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1280, 400]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Combined Healthcare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combined Healthcare Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR Patient",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FHIR Appointment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FHIR ClaimResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FHIR Patient": {
+      "main": [
+        [
+          {
+            "node": "Resource Combiner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FHIR Appointment": {
+      "main": [
+        [
+          {
+            "node": "Resource Combiner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FHIR ClaimResponse": {
+      "main": [
+        [
+          {
+            "node": "Resource Combiner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resource Combiner": {
+      "main": [
+        [
+          {
+            "node": "FHIR Bundle Combiner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FHIR Bundle Combiner": {
+      "main": [
+        [
+          {
+            "node": "Validation Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Filter": {
+      "main": [
+        [
+          {
+            "node": "Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {
+    "created": "2024-12-18T08:50:00Z",
+    "description": "Complete healthcare workflow: Patient → Appointment → ClaimResponse → Bundle with validation"
+  }
+}

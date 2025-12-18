@@ -1,0 +1,162 @@
+{
+  "name": "FHIR EligibilityResponse - Auto Detection",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "member_id",
+              "value": "MBR-AUTO-2024-555"
+            },
+            {
+              "name": "plan_id",
+              "value": "PLAN-GOLD-PREMIUM-001"
+            },
+            {
+              "name": "eligibility_status",
+              "value": "active"
+            },
+            {
+              "name": "effective_date",
+              "value": "2024-01-01"
+            },
+            {
+              "name": "termination_date",
+              "value": "2024-12-31"
+            },
+            {
+              "name": "patient_id",
+              "value": "Patient/eligible-patient-789"
+            },
+            {
+              "name": "coverage_type",
+              "value": "medical"
+            },
+            {
+              "name": "copay_amount",
+              "value": "30.00"
+            },
+            {
+              "name": "deductible_amount",
+              "value": "1000.00"
+            },
+            {
+              "name": "coinsurance_rate",
+              "value": "20"
+            },
+            {
+              "name": "out_of_pocket_max",
+              "value": "6000.00"
+            },
+            {
+              "name": "network_status",
+              "value": "in-network"
+            },
+            {
+              "name": "prior_auth_required",
+              "value": "false"
+            },
+            {
+              "name": "coverage_level",
+              "value": "family"
+            },
+            {
+              "name": "subscriber_relationship",
+              "value": "self"
+            },
+            {
+              "name": "group_number",
+              "value": "GRP-123456"
+            },
+            {
+              "name": "insurer_name",
+              "value": "Organization/health-insurance-corp"
+            },
+            {
+              "name": "request_reference",
+              "value": "CoverageEligibilityRequest/req-789"
+            }
+          ]
+        }
+      },
+      "id": "eligibility-auto-data",
+      "name": "Standard Eligibility Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "includeDetailedMapping": true
+        }
+      },
+      "id": "fhir-eligibility-auto",
+      "name": "FHIR EligibilityResponse Auto",
+      "type": "fhir-n8n-custom-nodes.fhirEligibilityResponse",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-eligibility",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract and analyze eligibility benefits\nconst eligibilityData = items[0].json;\nconst fhirResource = eligibilityData.fhir_resource;\n\n// Analyze coverage benefits\nlet benefits_analysis = {\n  coverage_active: fhirResource?.status === 'active',\n  has_deductible: false,\n  has_copay: false,\n  has_coinsurance: false,\n  network_coverage: 'unknown'\n};\n\n// Process insurance benefits if available\nif (fhirResource?.insurance && fhirResource.insurance[0]?.item) {\n  const items = fhirResource.insurance[0].item;\n  \n  items.forEach(item => {\n    const category = item.category?.text?.toLowerCase() || '';\n    \n    if (category.includes('deductible')) {\n      benefits_analysis.has_deductible = true;\n      benefits_analysis.deductible_amount = item.benefit?.[0]?.usedMoney?.value || 'Not specified';\n    }\n    \n    if (category.includes('copay')) {\n      benefits_analysis.has_copay = true;\n      benefits_analysis.copay_amount = item.benefit?.[0]?.allowedMoney?.value || 'Not specified';\n    }\n    \n    if (category.includes('coinsurance')) {\n      benefits_analysis.has_coinsurance = true;\n      benefits_analysis.coinsurance_rate = item.benefit?.[0]?.allowedMoney?.value || 'Not specified';\n    }\n  });\n}\n\nreturn [{\n  json: {\n    eligibility_analysis: benefits_analysis,\n    mapping_quality: {\n      auto_detected_fields: eligibilityData.mapping_summary?.auto_detected || 0,\n      total_fields: eligibilityData.mapping_summary?.total_input_fields || 0,\n      confidence_level: eligibilityData.mapping_summary?.high_confidence || 0,\n      validation_status: eligibilityData.validation_summary?.status\n    },\n    fhir_resource_summary: {\n      resource_type: fhirResource?.resourceType,\n      resource_id: fhirResource?.id,\n      status: fhirResource?.status,\n      patient_reference: fhirResource?.patient?.reference,\n      has_insurance: !!(fhirResource?.insurance && fhirResource.insurance.length > 0)\n    },\n    recommendations: [\n      benefits_analysis.coverage_active ? \"Coverage is active and valid\" : \"Check coverage status\",\n      benefits_analysis.has_deductible ? \"Deductible information available\" : \"Consider adding deductible details\",\n      benefits_analysis.has_copay ? \"Copay amounts specified\" : \"Copay information may be needed\",\n      \"Resource ready for eligibility verification workflows\"\n    ]\n  }\n}];"
+      },
+      "id": "eligibility-analysis",
+      "name": "Eligibility Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Standard Eligibility Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Standard Eligibility Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR EligibilityResponse Auto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FHIR EligibilityResponse Auto": {
+      "main": [
+        [
+          {
+            "node": "Eligibility Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {
+    "created": "2024-12-18T09:00:00Z",
+    "description": "Auto-detection of insurance eligibility data with comprehensive benefits analysis"
+  }
+}

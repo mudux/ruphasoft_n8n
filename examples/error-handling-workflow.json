@@ -1,0 +1,285 @@
+{
+  "name": "FHIR Error Handling and Validation Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "incomplete_patient_name",
+              "value": ""
+            },
+            {
+              "name": "invalid_birth_date",
+              "value": "not-a-date"
+            },
+            {
+              "name": "missing_gender",
+              "value": ""
+            },
+            {
+              "name": "invalid_phone",
+              "value": "abc-def-ghij"
+            },
+            {
+              "name": "empty_mrn",
+              "value": ""
+            },
+            {
+              "name": "special_characters",
+              "value": "John@#$%^&*()Doe"
+            },
+            {
+              "name": "null_field",
+              "value": null
+            }
+          ]
+        }
+      },
+      "id": "problematic-data",
+      "name": "Problematic Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "mode": "auto",
+        "options": {
+          "includeDetailedMapping": true,
+          "stopOnError": false
+        }
+      },
+      "id": "fhir-patient-error-test",
+      "name": "FHIR Patient (Error Prone)",
+      "type": "fhir-n8n-custom-nodes.fhirPatient",
+      "typeVersion": 1,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "error_check",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "error-filter",
+      "name": "Error Filter",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [860, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "success_check",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "success-filter",
+      "name": "Success Filter",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [860, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process error information\nconst errorData = items[0].json;\n\nreturn [{\n  json: {\n    error_analysis: {\n      has_error: errorData.error,\n      error_message: errorData.err_message,\n      validation_status: errorData.validation_summary?.status,\n      unmapped_fields: errorData.validation_summary?.unmapped_fields || [],\n      warnings: errorData.validation_summary?.warnings || [],\n      corrections: errorData.validation_summary?.corrections || [],\n      processing_mode: errorData.metadata?.processing_mode,\n      timestamp: new Date().toISOString()\n    },\n    recommendations: {\n      data_quality_issues: [\n        \"Check for missing required fields\",\n        \"Validate date formats (use YYYY-MM-DD)\",\n        \"Ensure proper field naming conventions\",\n        \"Remove special characters from names\",\n        \"Provide valid phone number formats\"\n      ],\n      next_steps: [\n        \"Clean source data\",\n        \"Use Manual Override mode for complex mappings\",\n        \"Enable detailed mapping for debugging\",\n        \"Review field patterns in documentation\"\n      ]\n    },\n    retry_suggestions: {\n      processing_mode: \"manual\",\n      include_detailed_mapping: true,\n      stop_on_error: false\n    }\n  }\n}];"
+      },
+      "id": "error-analysis",
+      "name": "Error Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process successful transformation\nconst successData = items[0].json;\n\nreturn [{\n  json: {\n    success_analysis: {\n      resource_created: true,\n      fhir_resource_type: successData.resource_type,\n      resource_id: successData.fhir_resource?.id,\n      validation_status: successData.validation_summary?.status,\n      mapped_fields_count: successData.mapping_summary?.auto_detected || 0,\n      total_input_fields: successData.mapping_summary?.total_input_fields || 0,\n      mapping_success_rate: `${Math.round((successData.mapping_summary?.auto_detected / successData.mapping_summary?.total_input_fields) * 100)}%`,\n      warnings: successData.validation_summary?.warnings || [],\n      corrections: successData.validation_summary?.corrections || [],\n      timestamp: new Date().toISOString()\n    },\n    quality_metrics: {\n      auto_detection_confidence: successData.mapping_summary?.high_confidence || 0,\n      needs_review_count: successData.mapping_summary?.needs_review || 0,\n      transformation_quality: successData.validation_summary?.status === 'valid' ? 'High' : \n                             successData.validation_summary?.status === 'valid_with_warnings' ? 'Good' : 'Needs Improvement'\n    },\n    next_steps: [\n      \"Resource ready for FHIR server submission\",\n      \"Review any warnings for data quality improvements\",\n      \"Consider manual override for unmapped fields\",\n      \"Validate against FHIR specification if needed\"\n    ]\n  }\n}];"
+      },
+      "id": "success-analysis",
+      "name": "Success Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-error",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "merge-results",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [1300, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "workflow_name",
+              "value": "FHIR Error Handling Workflow"
+            },
+            {
+              "name": "execution_timestamp",
+              "value": "={{ new Date().toISOString() }}"
+            },
+            {
+              "name": "status",
+              "value": "Analysis Complete"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "final-output",
+      "name": "Final Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1520, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Problematic Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Problematic Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR Patient (Error Prone)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FHIR Patient (Error Prone)": {
+      "main": [
+        [
+          {
+            "node": "Error Filter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Success Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Filter": {
+      "main": [
+        [
+          {
+            "node": "Error Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Filter": {
+      "main": [
+        [
+          {
+            "node": "Success Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {
+    "created": "2024-12-18T08:55:00Z",
+    "description": "Demonstrates error handling, validation analysis, and debugging workflows for FHIR transformations"
+  }
+}

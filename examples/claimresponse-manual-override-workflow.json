@@ -1,0 +1,232 @@
+{
+  "name": "FHIR ClaimResponse - Manual Override",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "insurance_claim_ref",
+              "value": "CLM-MANUAL-2024-456"
+            },
+            {
+              "name": "processing_status",
+              "value": "finalized"
+            },
+            {
+              "name": "adjudication_outcome",
+              "value": "partial"
+            },
+            {
+              "name": "claim_total_billed",
+              "value": "850.00"
+            },
+            {
+              "name": "insurance_paid_amount",
+              "value": "680.00"
+            },
+            {
+              "name": "patient_responsibility",
+              "value": "170.00"
+            },
+            {
+              "name": "covered_member_id",
+              "value": "Patient/member-67890"
+            },
+            {
+              "name": "insurance_payer",
+              "value": "Organization/blue-cross-shield"
+            },
+            {
+              "name": "processing_date",
+              "value": "2024-12-20"
+            },
+            {
+              "name": "original_claim_ref",
+              "value": "Claim/original-claim-123"
+            },
+            {
+              "name": "claim_use_code",
+              "value": "claim"
+            },
+            {
+              "name": "currency_type",
+              "value": "USD"
+            },
+            {
+              "name": "line_item_sequence",
+              "value": "1"
+            },
+            {
+              "name": "adjudication_category",
+              "value": "eligible"
+            },
+            {
+              "name": "adjudication_amount",
+              "value": "680.00"
+            },
+            {
+              "name": "denial_reason_code",
+              "value": "copay-required"
+            },
+            {
+              "name": "processing_note",
+              "value": "Claim processed successfully with copay applied"
+            }
+          ]
+        }
+      },
+      "id": "claimresponse-manual-data",
+      "name": "Complex ClaimResponse Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "manualMappings": {
+          "mappingValues": [
+            {
+              "sourceField": "insurance_claim_ref",
+              "fhirPath": "identifier[0].value",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "processing_status",
+              "fhirPath": "status",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "adjudication_outcome",
+              "fhirPath": "outcome",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "covered_member_id",
+              "fhirPath": "patient.reference",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "insurance_payer",
+              "fhirPath": "insurer.reference",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "processing_date",
+              "fhirPath": "created",
+              "transformation": "convertToFhirDate",
+              "action": "override"
+            },
+            {
+              "sourceField": "original_claim_ref",
+              "fhirPath": "request.reference",
+              "transformation": "trim",
+              "action": "override"
+            },
+            {
+              "sourceField": "claim_use_code",
+              "fhirPath": "use",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "claim_total_billed",
+              "fhirPath": "total[0].amount.value",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "currency_type",
+              "fhirPath": "total[0].amount.currency",
+              "transformation": "toUpperCase",
+              "action": "override"
+            },
+            {
+              "sourceField": "insurance_paid_amount",
+              "fhirPath": "payment.amount.value",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "line_item_sequence",
+              "fhirPath": "item[0].itemSequence",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "adjudication_category",
+              "fhirPath": "item[0].adjudication[0].category.text",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "adjudication_amount",
+              "fhirPath": "item[0].adjudication[0].amount.value",
+              "transformation": "",
+              "action": "override"
+            },
+            {
+              "sourceField": "processing_note",
+              "fhirPath": "processNote[0].text",
+              "transformation": "trim",
+              "action": "override"
+            }
+          ]
+        },
+        "options": {
+          "includeDetailedMapping": true,
+          "customId": "claim-response-manual-001"
+        }
+      },
+      "id": "fhir-claimresponse-manual",
+      "name": "FHIR ClaimResponse Manual",
+      "type": "fhir-n8n-custom-nodes.fhirClaimResponse",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-claim",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Complex ClaimResponse Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complex ClaimResponse Data": {
+      "main": [
+        [
+          {
+            "node": "FHIR ClaimResponse Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {
+    "created": "2024-12-18T08:45:00Z",
+    "description": "Complex ClaimResponse transformation with detailed adjudication and payment information"
+  }
+}
