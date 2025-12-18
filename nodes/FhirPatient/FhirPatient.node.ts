@@ -16,6 +16,7 @@ export class FhirPatient implements INodeType {
 		name: 'fhirPatient',
 		group: ['transform'],
 		version: 1,
+		icon: 'file:../../ruphasoft_icon.svg',
 		description: 'Transform JSON payload to FHIR Patient resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Patient',

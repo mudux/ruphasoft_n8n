@@ -15,6 +15,7 @@ export class FhirAppointment implements INodeType {
 		name: 'fhirAppointment',
 		group: ['transform'],
 		version: 1,
+		icon: 'file:../../ruphasoft_icon.svg',
 		description: 'Transform JSON payload to FHIR Appointment resource with intelligent field mapping',
 		defaults: {
 			name: 'FHIR Appointment',
