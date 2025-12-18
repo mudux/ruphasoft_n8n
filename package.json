@@ -4,6 +4,7 @@
   "description": "FHIR transformation nodes for n8n with intelligent auto-detection and manual override capabilities",
   "main": "nodes/index.js",
   "files": [
+    "dist/**/*",
     "nodes/**/*",
     "src/**/*",
     "package.json",
@@ -11,13 +12,14 @@
   ],
   "n8n": {
     "n8nNodesApiVersion": 1,
+    "strict": true,
     "credentials": [],
     "nodes": [
-      "nodes/patient.js",
-      "nodes/appointment.js",
-      "nodes/bundle.js",
-      "nodes/claimResponse.js",
-      "nodes/eligibilityResponse.js"
+      "dist/nodes/FhirPatient/FhirPatient.node.js",
+      "dist/nodes/FhirAppointment/FhirAppointment.node.js",
+      "dist/nodes/FhirBundle/FhirBundle.node.js",
+      "dist/nodes/FhirClaimResponse/FhirClaimResponse.node.js",
+      "dist/nodes/FhirEligibilityResponse/FhirEligibilityResponse.node.js"
     ]
   },
   "scripts": {
@@ -25,13 +27,17 @@
     "test": "npm run test-core",
     "docker-setup": "node docker_setup.js",
     "docker-verify": "node docker_setup.js verify",
-    "build": "echo 'Docker-only implementation - no build needed'"
+    "build": "tsc",
+    "dev": "n8n-node dev",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
-    "n8n-workflow": "^1.0.0"
+    "n8n-workflow": "^1.120.1"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0"
+    "@n8n/node-cli": "^0.17.0",
+    "@types/node": "^18.19.130",
+    "typescript": "^5.9.3"
   },
   "keywords": [
     "n8n",

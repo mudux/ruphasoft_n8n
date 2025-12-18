@@ -273,6 +273,16 @@ class FhirTransformer {
   }
 
   _capitalizeResourceType(type) {
+    // Handle special FHIR resource type mappings
+    const typeMapping = {
+      'eligibilityResponse': 'CoverageEligibilityResponse',
+      'claimResponse': 'ClaimResponse'
+    };
+
+    if (typeMapping[type]) {
+      return typeMapping[type];
+    }
+
     return type.charAt(0).toUpperCase() + type.slice(1);
   }
 

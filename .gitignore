@@ -1,0 +1,251 @@
+# FHIR n8n Custom Nodes - Git Ignore
+# TypeScript project with Docker deployment
+
+# =======================
+# Environment & Secrets
+# =======================
+.env
+.env.local
+.env.production
+.env.staging
+*.key
+*.pem
+credentials.json
+
+# =======================
+# Node.js Dependencies
+# =======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# =======================
+# TypeScript Compilation
+# =======================
+dist/
+build/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# =======================
+# Testing & Coverage
+# =======================
+coverage/
+*.lcov
+.nyc_output
+test-results/
+junit.xml
+
+# =======================
+# Docker & Container Files
+# =======================
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
+*.dockerignore
+
+# =======================
+# Development Tools
+# =======================
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Editors
+*~
+.DS_Store
+Thumbs.db
+
+# =======================
+# Logs & Debug
+# =======================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# =======================
+# Runtime & Temporary
+# =======================
+.tmp/
+.temp/
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+
+# =======================
+# n8n Specific
+# =======================
+.n8n/
+n8n_data/
+shared/
+n8n/demo-data/credentials/*.json
+n8n/demo-data/workflows/*.json
+
+# =======================
+# Backup & Archive Files
+# =======================
+*.backup
+*.bak
+*.tar.gz
+*.zip
+*.7z
+backups/
+
+# =======================
+# OS Generated Files
+# =======================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =======================
+# Development Artifacts
+# =======================
+*.pid
+*.seed
+*.pid.lock
+.grunt
+.lock-wscript
+.wafpickle-*
+.node_repl_history
+*.tgz
+.npm
+.eslintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# =======================
+# Documentation Build
+# =======================
+docs/build/
+docs/.vuepress/dist/
+.docusaurus/
+
+# =======================
+# Configuration Overrides
+# =======================
+config/local.json
+config/production.json
+config/staging.json
+
+# =======================
+# Package Managers
+# =======================
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# =======================
+# Deployment Artifacts
+# =======================
+deployment/
+deploy/
+fhir-n8n-production/
+
+# =======================
+# Test & Mock Data
+# =======================
+mock-data/
+test-data/
+fixtures/
+
+# =======================
+# SSL Certificates
+# =======================
+*.crt
+*.cert
+*.ca-bundle
+ssl/
+
+# =======================
+# Keep Important Files
+# =======================
+# These should be committed:
+!.env.example
+!.gitkeep
+!README.md
+!LICENSE
+!CHANGELOG.md
+!docker-compose-production.yml
+!docker-compose-typescript.yml
+!package.json
+!tsconfig.json
+
+# =======================
+# Project Specific
+# =======================
+
+# Keep verification scripts
+!verify-typescript-migration.js
+!test-fhir-transformation.js
+!deploy-production.sh
+
+# Keep documentation
+!*.md
+!PRODUCTION_DEPLOYMENT_GUIDE.md
+!TYPESCRIPT_MIGRATION_COMPLETE.md
+!MIGRATION_SUCCESS_SUMMARY.md
+
+# Keep TypeScript source
+!nodes/
+!src/
+nodes/**/*.js
+src/**/*.js
+
+# Keep essential config files
+!tsconfig.json
+!package.json
+!docker-compose*.yml
+
+# Ignore old/archived implementations
+archived/
+
+# =======================
+# Security
+# =======================
+.secrets
+.credentials
+*.secrets
+auth.json
+private-keys/

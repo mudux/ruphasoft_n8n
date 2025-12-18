@@ -46,44 +46,73 @@ docker-compose restart n8n
 - **Auto-correction** of common data issues
 - **Helpful feedback** without blocking workflows
 
-## Supported Resources (5 Only)
+## Supported Resources (5 Complete)
 
 | Resource | Status | Description |
 |----------|--------|-------------|
-| **Patient** | ✅ Ready | Demographics, identifiers, contact info |
-| **Appointment** | 🚧 Planned | Scheduling data transformation |
-| **Bundle** | 🚧 Planned | Resource collections |
-| **ClaimResponse** | 🚧 Planned | Insurance claim responses |
-| **EligibilityResponse** | 🚧 Planned | Insurance eligibility responses |
+| **Patient** | ✅ Complete | Demographics, identifiers, contact info |
+| **Appointment** | ✅ Complete | Scheduling data transformation |
+| **Bundle** | ✅ Complete | Resource collections |
+| **ClaimResponse** | ✅ Complete | Insurance claim responses |
+| **EligibilityResponse** | ✅ Complete | Insurance eligibility responses |
 
-## Quick Start (Docker Only)
+## Quick Start
 
-### Method 1: GitHub Installation (Recommended)
+### Method 1: Automated Production Deployment (Recommended)
 
-Install directly from GitHub repository into your n8n Docker container:
+**One-command deployment** - pulls everything from GitHub and sets up complete stack:
 
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  n8n:
-    image: n8nio/n8n:latest
-    ports:
-      - "5678:5678"
-    command: >
-      sh -c "
-        npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git &&
-        n8n start
-      "
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=password
-    volumes:
-      - n8n_data:/home/node/.n8n
+```bash
+# Automated deployment (everything from GitHub)
+curl -sSL https://raw.githubusercontent.com/mudux/ruphasoft_n8n/main/deploy-production.sh | bash
 ```
 
-### Method 2: Manual Installation
+**Or manual deployment**:
+```bash
+# Download deployment script
+curl -O https://raw.githubusercontent.com/mudux/ruphasoft_n8n/main/deploy-production.sh
+chmod +x deploy-production.sh
+
+# Run deployment
+./deploy-production.sh
+```
+
+**Includes**: n8n + 5 TypeScript FHIR nodes + PostgreSQL + Ollama + Qdrant
+
+✨ **No local files needed** - everything pulled from GitHub automatically!
+
+### Method 2: Manual Production Setup
+
+If you prefer manual control:
+
+```bash
+# Create deployment directory
+mkdir fhir-n8n-production && cd fhir-n8n-production
+
+# Download configuration files
+curl -O https://raw.githubusercontent.com/mudux/ruphasoft_n8n/main/docker-compose-production.yml
+curl -O https://raw.githubusercontent.com/mudux/ruphasoft_n8n/main/.env.example
+
+# Setup environment
+cp .env.example .env
+nano .env  # Edit with secure credentials
+
+# Deploy
+docker compose -f docker-compose-production.yml up -d
+```
+
+See: [Production Deployment Guide](PRODUCTION_DEPLOYMENT_GUIDE.md) for detailed instructions.
+
+### Method 3: Development/Testing
+
+Simple n8n instance with TypeScript FHIR nodes only:
+
+```bash
+# Quick test deployment
+docker compose -f docker-compose-typescript.yml up -d
+```
+
+### Method 4: Legacy Manual Installation
 
 ```bash
 # Clone repository
