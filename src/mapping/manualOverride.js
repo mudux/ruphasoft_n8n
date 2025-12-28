@@ -1,11 +1,16 @@
 // Manual Override System
 // Robust interface for adjusting auto-detected field mappings
+// Enhanced with preset support and semantic path validation
+
+const { validateSemanticPath } = require('../utils/semanticPaths');
+const { getPreset, applyPreset, getAvailablePresets } = require('../utils/transformationPresets');
 
 class ManualOverride {
   constructor(initialMappings = []) {
     this.mappings = this._cloneMappings(initialMappings);
     this.customMappings = [];
     this.removedMappings = [];
+    this.presetTransformations = new Map(); // Track which mappings use presets
   }
 
   // Override a specific mapping
@@ -103,12 +108,13 @@ class ManualOverride {
     return results;
   }
 
-  // Validate mapping configuration
-  validateMapping(sourceField, fhirPath) {
+  // Validate mapping configuration with semantic path support
+  validateMapping(sourceField, fhirPath, transformation = null) {
     const validation = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
+      suggestions: []
     };
 
     // Check if source field exists
@@ -123,9 +129,35 @@ class ManualOverride {
       validation.errors.push('FHIR path cannot be empty');
     }
 
-    // Check for path format
-    if (fhirPath && !this._isValidFhirPath(fhirPath)) {
-      validation.warnings.push('FHIR path format may not be valid');
+    // Validate semantic path format
+    if (fhirPath) {
+      const semanticValidation = validateSemanticPath(fhirPath);
+      if (!semanticValidation.valid) {
+        validation.errors.push(...semanticValidation.errors);
+        validation.isValid = false;
+      }
+      if (semanticValidation.warnings.length > 0) {
+        validation.warnings.push(...semanticValidation.warnings);
+      }
+
+      // Also check legacy format
+      if (!this._isValidFhirPath(fhirPath) && semanticValidation.valid) {
+        // Valid semantic path but not legacy format - that's OK
+      } else if (!this._isValidFhirPath(fhirPath) && !semanticValidation.valid) {
+        validation.warnings.push('FHIR path format may not be valid');
+      }
+    }
+
+    // Validate transformation preset
+    if (transformation) {
+      const preset = getPreset(transformation);
+      if (!preset) {
+        // Check if it's a built-in transformation
+        const builtInTransforms = ['toUpperCase', 'toLowerCase', 'trim'];
+        if (!builtInTransforms.includes(transformation)) {
+          validation.warnings.push(`Unknown transformation preset: ${transformation}`);
+        }
+      }
     }
 
     // Check for duplicate mappings
@@ -137,7 +169,54 @@ class ManualOverride {
       validation.warnings.push('Mapping already exists and will be overridden');
     }
 
+    // Suggest transformations based on field names
+    if (!transformation) {
+      const suggestedTransform = this._suggestTransformationForField(sourceField, fhirPath);
+      if (suggestedTransform) {
+        validation.suggestions.push(`Consider using transformation: ${suggestedTransform}`);
+      }
+    }
+
     return validation;
+  }
+
+  // Suggest transformation based on field context
+  _suggestTransformationForField(sourceField, fhirPath) {
+    const fieldLower = (sourceField || '').toLowerCase();
+    const pathLower = (fhirPath || '').toLowerCase();
+
+    // Date fields
+    if (fieldLower.includes('date') || fieldLower.includes('dob') || pathLower.includes('date')) {
+      return 'formatKenyaDate';
+    }
+
+    // Phone fields
+    if (fieldLower.includes('phone') || fieldLower.includes('mobile') || fieldLower.includes('tel')) {
+      return 'formatPhoneKE';
+    }
+
+    // Name fields
+    if (fieldLower.includes('name') && !fieldLower.includes('username')) {
+      return 'formatName';
+    }
+
+    // Gender
+    if (fieldLower.includes('gender') || fieldLower.includes('sex')) {
+      return 'normalizeGender';
+    }
+
+    // Kenya identifiers
+    if (fieldLower.includes('national_id') || fieldLower.includes('id_number')) {
+      return 'formatNationalId';
+    }
+    if (fieldLower.includes('nhif')) {
+      return 'formatNHIFNumber';
+    }
+    if (fieldLower.includes('sha')) {
+      return 'formatSHANumber';
+    }
+
+    return null;
   }
 
   // Get mapping summary for UI display
@@ -191,8 +270,11 @@ class ManualOverride {
   }
 
   _isValidFhirPath(path) {
-    // Basic FHIR path validation
-    const fhirPathPattern = /^[a-zA-Z][a-zA-Z0-9]*(\[\d+\])?(\.[a-zA-Z][a-zA-Z0-9]*(\[\d+\])?)*$/;
+    // Enhanced FHIR path validation supporting:
+    // - Numeric indices: name[0].given[0]
+    // - Semantic indices: identifier[sha_number].value
+    // - Mixed: telecom[primary_phone].value
+    const fhirPathPattern = /^[a-zA-Z][a-zA-Z0-9]*(\[[a-zA-Z0-9_]+\])?(\.[a-zA-Z][a-zA-Z0-9]*(\[[a-zA-Z0-9_]+\])?)*$/;
     return fhirPathPattern.test(path);
   }
 

@@ -1,9 +1,12 @@
 // FHIR Transformation Utilities
 // Convert mapped data to FHIR resources with forgiving validation
+// Enhanced with semantic path support and Kenya-specific transformations
 
 const { AutoDetector } = require('../mapping/autoDetector');
 const { ManualOverride } = require('../mapping/manualOverride');
 const { ForgivingValidator } = require('../validation/forgivingValidator');
+const { setValueAtSemanticPath, parseSemanticPath } = require('./semanticPaths');
+const { applyPreset, getPreset, getAvailablePresets } = require('./transformationPresets');
 
 class FhirTransformer {
   constructor(resourceType) {
@@ -91,58 +94,45 @@ class FhirTransformer {
     return resource;
   }
 
-  // Set value at FHIR path (handles nested structures)
+  // Set value at FHIR path (handles nested structures with semantic indices)
+  // Supports both numeric indices (name[0]) and semantic indices (identifier[sha_number])
   _setResourceValue(resource, fhirPath, value) {
-    const parts = fhirPath.split('.');
-    let current = resource;
-
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
-      const { field, index } = this._parsePathPart(part);
-
-      if (!current[field]) {
-        current[field] = index !== null ? [] : {};
-      }
-
-      if (index !== null) {
-        // Array handling
-        while (current[field].length <= index) {
-          current[field].push({});
-        }
-        current = current[field][index];
-      } else {
-        current = current[field];
-      }
-    }
-
-    // Set final value
-    const lastPart = parts[parts.length - 1];
-    const { field, index } = this._parsePathPart(lastPart);
-
-    if (index !== null) {
-      if (!current[field]) current[field] = [];
-      while (current[field].length <= index) {
-        current[field].push(null);
-      }
-      current[field][index] = value;
-    } else {
-      current[field] = value;
-    }
+    // Use the semantic path handler for full support
+    return setValueAtSemanticPath(resource, fhirPath, value);
   }
 
-  // Parse path part like 'name[0]' -> {field: 'name', index: 0}
+  // Parse path part - kept for backwards compatibility
+  // Supports both numeric (name[0]) and semantic (identifier[sha_number]) indices
   _parsePathPart(part) {
-    const match = part.match(/^([^[]+)\[(\d+)\]$/);
+    const match = part.match(/^([^[]+)\[([^\]]+)\]$/);
     if (match) {
-      return { field: match[1], index: parseInt(match[2], 10) };
+      const indexOrName = match[2];
+      // Check if it's a numeric index
+      if (/^\d+$/.test(indexOrName)) {
+        return { field: match[1], index: parseInt(indexOrName, 10), semantic: null };
+      }
+      // It's a semantic name
+      return { field: match[1], index: null, semantic: indexOrName };
     }
-    return { field: part, index: null };
+    return { field: part, index: null, semantic: null };
   }
 
   // Transform individual values based on transformation type
+  // First checks for presets, then falls back to built-in transformations
   _transformValue(value, transformation) {
     if (!transformation) return value;
 
+    // Try to apply as a preset first
+    const preset = getPreset(transformation);
+    if (preset) {
+      try {
+        return applyPreset(transformation, value);
+      } catch (error) {
+        console.warn(`Preset ${transformation} failed, falling back to built-in:`, error.message);
+      }
+    }
+
+    // Fall back to built-in transformations for backwards compatibility
     switch (transformation) {
       case 'convertToFhirDate':
         return this._convertToFhirDate(value);
@@ -159,39 +149,50 @@ class FhirTransformer {
       case 'trim':
         return String(value).trim();
       default:
-        return value;
+        // Unknown transformation - try as preset one more time
+        return applyPreset(transformation, value) || value;
     }
   }
 
-  // Transformation helpers
+  // Transformation helpers (kept for backwards compatibility)
   _convertToFhirDate(value) {
-    const date = new Date(value);
-    return isNaN(date.getTime()) ? value : date.toISOString().split('T')[0];
+    // Use Kenya date format preset for better date handling
+    return applyPreset('formatKenyaDate', value) || (() => {
+      const date = new Date(value);
+      return isNaN(date.getTime()) ? value : date.toISOString().split('T')[0];
+    })();
   }
 
   _formatPhoneNumber(value) {
-    const digits = String(value).replace(/\D/g, '');
-    if (digits.length === 10) {
-      return `+1${digits}`;
-    }
-    return value;
+    // Use Kenya phone format preset
+    return applyPreset('formatPhoneKE', value) || (() => {
+      const digits = String(value).replace(/\D/g, '');
+      if (digits.length === 10) {
+        return `+1${digits}`;
+      }
+      return value;
+    })();
   }
 
   _normalizeGender(value) {
-    const normalized = String(value).toLowerCase().trim();
-    const genderMap = {
-      'm': 'male', 'male': 'male',
-      'f': 'female', 'female': 'female',
-      'o': 'other', 'other': 'other'
-    };
-    return genderMap[normalized] || 'unknown';
+    return applyPreset('normalizeGender', value) || (() => {
+      const normalized = String(value).toLowerCase().trim();
+      const genderMap = {
+        'm': 'male', 'male': 'male',
+        'f': 'female', 'female': 'female',
+        'o': 'other', 'other': 'other'
+      };
+      return genderMap[normalized] || 'unknown';
+    })();
   }
 
   _formatName(value) {
-    return String(value)
-      .split(' ')
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-      .join(' ');
+    return applyPreset('formatName', value) || (() => {
+      return String(value)
+        .split(' ')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(' ');
+    })();
   }
 
   // Apply user mappings
@@ -332,16 +333,48 @@ class FhirTransformer {
   }
 
   // Get available transformations for UI
+  // Returns combined list of presets and built-in transformations
   static getAvailableTransformations() {
-    return [
-      { name: 'convertToFhirDate', description: 'Convert to YYYY-MM-DD date format' },
-      { name: 'formatPhoneNumber', description: 'Format phone number with country code' },
-      { name: 'normalizeGender', description: 'Normalize to FHIR gender values' },
-      { name: 'formatName', description: 'Capitalize names properly' },
-      { name: 'toUpperCase', description: 'Convert to uppercase' },
-      { name: 'toLowerCase', description: 'Convert to lowercase' },
-      { name: 'trim', description: 'Remove leading/trailing whitespace' }
+    // Get all presets from the preset library
+    const presets = getAvailablePresets().map(p => ({
+      name: p.name,
+      description: p.description,
+      category: p.category,
+      isPreset: true
+    }));
+
+    // Add legacy built-in transformations for backwards compatibility
+    const builtIn = [
+      { name: 'convertToFhirDate', description: 'Convert to YYYY-MM-DD date format', category: 'dates', isPreset: false },
+      { name: 'formatPhoneNumber', description: 'Format phone number with country code', category: 'phone', isPreset: false },
+      { name: 'normalizeGender', description: 'Normalize to FHIR gender values', category: 'gender', isPreset: false },
+      { name: 'formatName', description: 'Capitalize names properly', category: 'names', isPreset: false },
+      { name: 'toUpperCase', description: 'Convert to uppercase', category: 'strings', isPreset: false },
+      { name: 'toLowerCase', description: 'Convert to lowercase', category: 'strings', isPreset: false },
+      { name: 'trim', description: 'Remove leading/trailing whitespace', category: 'strings', isPreset: false }
     ];
+
+    // Merge, preferring presets over built-in when names match
+    const presetNames = new Set(presets.map(p => p.name));
+    const mergedBuiltIn = builtIn.filter(b => !presetNames.has(b.name));
+
+    return [...presets, ...mergedBuiltIn];
+  }
+
+  // Get transformations grouped by category for UI
+  static getTransformationsByCategory() {
+    const all = FhirTransformer.getAvailableTransformations();
+    const grouped = {};
+
+    for (const t of all) {
+      const category = t.category || 'other';
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(t);
+    }
+
+    return grouped;
   }
 }
 
