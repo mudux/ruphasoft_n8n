@@ -1,28 +1,35 @@
-# FHIR n8n Custom Nodes - Docker Implementation
+# FHIR n8n Custom Nodes - Enhanced Docker Implementation
 
-> **TL;DR**: Transform any JSON to FHIR resources in n8n with intelligent auto-detection + manual override. Docker-native, extremely forgiving validation, GitHub installable.
+> **TL;DR**: Transform any JSON to FHIR resources in n8n with intelligent auto-detection, 4 integrator templates (KHIE, mamaTOTO, LCT, Smart), semantic array indexing, and Kenya-specific healthcare patterns. Docker-native, extremely forgiving validation, GitHub installable.
+
+**Part of**: [N8N FHIR Bundle Router Workflow System](../README.md)
 
 ## Overview
 
-Simple, YAGNI-focused FHIR transformation nodes for **n8n Docker environments**. Transforms mixed JSON payloads into FHIR-compliant resources with **robust auto-detection** and **comprehensive manual override** capabilities.
+Enhanced, YAGNI-focused FHIR transformation nodes for **n8n Docker environments**. Transforms mixed JSON payloads into FHIR-compliant resources with:
+- **Robust auto-detection** with confidence scoring
+- **Comprehensive manual override** capabilities
+- **4 integrator templates** for Kenya healthcare systems
+- **Semantic array indexing** (`identifier[national_id]` instead of `identifier[0]`)
+- **25+ Kenya-specific transformations** (SHA, NHIF, National ID, counties, etc.)
 
 > **Docker Only**: This implementation is designed exclusively for Docker Compose environments.
 
-## ⚡ Quick Install
+## Quick Install
 
 ```bash
 # Install in existing n8n Docker container
 docker-compose exec n8n npm install -g https://github.com/your-org/fhir-n8n-custom-nodes.git
 docker-compose restart n8n
-# ✅ Look for "FHIR Patient" node in n8n palette
+# Look for "FHIR Patient" node in n8n palette
 ```
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Core Features](#core-features)
-- [Quick Start](#quick-start-docker-only)
+- [Quick Start](#quick-start)
 - [Node Configuration](#node-configuration)
-- [FHIR Resources](#supported-resources-5-only)
+- [FHIR Resources](#supported-resources-5-enhanced)
 - [Installation](#installation-for-users)
 - [Testing](#testing-in-docker)
 - [Development](#development)
@@ -31,30 +38,38 @@ docker-compose restart n8n
 
 ## Core Features
 
-### ✨ Intelligent Auto-Detection
+### Intelligent Auto-Detection
 - **Pattern matching** for common healthcare fields
 - **Confidence scoring** (auto-apply high confidence, flag medium, ignore low)
 - **Smart defaults** with healthcare-aware field recognition
 
-### 🔧 Robust Manual Override
+### Robust Manual Override
 - **Comprehensive field remapping** interface
 - **Custom transformations** (date formatting, phone formatting, etc.)
 - **Mapping templates** for reuse across workflows
 
-### 🛡️ Forgiving Validation
+### Forgiving Validation
 - **Extremely permissive** validation approach
 - **Auto-correction** of common data issues
 - **Helpful feedback** without blocking workflows
 
-## Supported Resources (5 Complete)
+### Integrator Templates (v2/v3)
+- **4 Built-in Templates**: KHIE (Kenya Health Information Exchange), mamaTOTO (Maternal Health), LCT (Lab/Clinical Technology), Smart (FHIR-native systems)
+- **Template Mode**: Pre-configured field mappings for common healthcare integrators
+- **Kenya-Specific Support**: SHA/NHIF schemes, National ID, MOH facility codes, counties
+- **Semantic Array Indexing**: Use `identifier[national_id]` instead of `identifier[0]`
 
-| Resource | Status | Description |
-|----------|--------|-------------|
-| **Patient** | ✅ Complete | Demographics, identifiers, contact info |
-| **Appointment** | ✅ Complete | Scheduling data transformation |
-| **Bundle** | ✅ Complete | Resource collections |
-| **ClaimResponse** | ✅ Complete | Insurance claim responses |
-| **EligibilityResponse** | ✅ Complete | Insurance eligibility responses |
+## Supported Resources (5 Enhanced)
+
+| Resource | Version | Status | Description |
+|----------|---------|--------|-------------|
+| **Patient** | v3 | ✅ Enhanced | Demographics, identifiers, contact info with Template Mode |
+| **Appointment** | v2 | ✅ Enhanced | Scheduling data with Kenya healthcare patterns |
+| **Bundle** | v2 | ✅ Enhanced | Resource collections with semantic indexing |
+| **ClaimResponse** | v2 | ✅ Enhanced | Insurance claim responses with Kenya schemes |
+| **EligibilityResponse** | v2 | ✅ Enhanced | Insurance eligibility with 4 integrator templates |
+
+**Latest Enhancement (2025-12-26)**: All nodes upgraded with semantic array indexing, Kenya-specific transformations, and integrator-specific templates for KHIE, mamaTOTO, LCT, and Smart systems.
 
 ## Quick Start
 
@@ -79,7 +94,7 @@ chmod +x deploy-production.sh
 
 **Includes**: n8n + 5 TypeScript FHIR nodes + PostgreSQL + Ollama + Qdrant
 
-✨ **No local files needed** - everything pulled from GitHub automatically!
+**No local files needed** - everything pulled from GitHub automatically.
 
 ### Method 2: Manual Production Setup
 
@@ -150,49 +165,72 @@ npm run docker-setup
 
 ### 3. Usage Example
 
-**Input JSON:**
+**Kenya HMIS Input (KHIE Integrator):**
 ```json
 {
+  "national_id": "12345678",
+  "sha_number": "SHA123456",
   "patient_first_name": "John",
-  "patient_last_name": "Doe",
-  "dob": "1990-05-15",
-  "phone": "(555) 123-4567",
-  "mrn": "12345"
+  "patient_last_name": "Mwangi",
+  "phone": "0712345678",
+  "dob": "25/12/1990",
+  "county": "Nairobi",
+  "gender": "m"
 }
 ```
 
-**Auto-Detection Result:**
-- `patient_first_name` → `name[0].given[0]` (95% confidence)
-- `patient_last_name` → `name[0].family` (95% confidence)
-- `dob` → `birthDate` (90% confidence)
-- `phone` → `telecom[0].value` (85% confidence)
-- `mrn` → `identifier[0].value` (100% confidence)
+**Enhanced Auto-Detection (Template Mode):**
+- `national_id` → `identifier[national_id].value` (100% confidence) + formatNationalId
+- `sha_number` → `identifier[sha_number].value` (100% confidence) + formatSHANumber
+- `patient_first_name` → `name[official].given[0]` (100% confidence) + formatName
+- `phone` → `telecom[primary_phone].value` (100% confidence) + formatPhoneKE
+- `dob` → `birthDate` (100% confidence) + formatKenyaDate
 
-**FHIR Output:**
+**Enhanced FHIR Output:**
 ```json
 {
   "error": false,
   "fhir_resource": {
     "resourceType": "Patient",
-    "id": "auto-1671234567890-abc123def",
+    "id": "auto-1735257271105-ken123abc",
     "name": [{
+      "use": "official",
       "given": ["John"],
-      "family": "Doe"
+      "family": "Mwangi"
     }],
-    "birthDate": "1990-05-15",
+    "birthDate": "1990-12-25",
+    "gender": "male",
     "telecom": [{
       "system": "phone",
-      "value": "+15551234567"
+      "use": "mobile",
+      "value": "+254712345678"
     }],
-    "identifier": [{
-      "value": "12345",
-      "system": "http://hospital.example.org/patient-ids"
+    "identifier": [
+      {
+        "system": "http://kenya.go.ke/fhir/national-id",
+        "use": "official",
+        "value": "12345678"
+      },
+      {
+        "system": "http://kenya.go.ke/fhir/sha-number",
+        "use": "official",
+        "value": "SHA123456"
+      }
+    ],
+    "extension": [{
+      "url": "http://kenya.go.ke/fhir/StructureDefinition/county",
+      "valueString": "Nairobi"
+    }],
+    "address": [{
+      "country": "KE"
     }]
   },
   "validation_summary": {
     "status": "valid_with_warnings",
-    "mapped_fields": ["patient_first_name", "patient_last_name", "dob", "phone", "mrn"],
-    "warnings": ["Phone number auto-formatted"]
+    "mapped_fields": ["national_id", "sha_number", "patient_first_name", "patient_last_name", "phone", "dob", "county", "gender"],
+    "auto_corrections": ["Phone formatted to +254 format", "Date converted from DD/MM/YYYY", "Gender normalized", "National ID padded"],
+    "integrator": "khie_sha",
+    "template_used": "Kenya HMIS Standard"
   }
 }
 ```
@@ -233,53 +271,74 @@ npm run docker-setup
 - Add custom field mappings
 - Apply data transformations
 
-#### 3. Template Mode
+#### 3. Template Mode (New!)
 ```javascript
-// Node settings (planned)
+// Node settings
 {
   "mode": "template",
-  "template": "hospital_adt_feed"
+  "template": "khie_sha"
 }
 ```
-- Pre-configured mapping templates
-- Reusable across similar data sources
+- **4 Built-in Integrator Templates**: KHIE (SHA/NHIF schemes), mamaTOTO (maternal health), LCT (lab systems), Smart (FHIR-native)
+- **Pre-configured field mappings** for common healthcare data sources
+- **Template overrides** allow customization without full manual setup
+- **Kenya-specific patterns** with automatic transformations
 
 ### Available Transformations
 
 | Transformation | Description | Example |
 |---------------|-------------|---------|
-| `convertToFhirDate` | Format as YYYY-MM-DD | `05/15/1990` → `1990-05-15` |
-| `formatPhoneNumber` | Add country code | `5551234567` → `+15551234567` |
-| `normalizeGender` | FHIR gender values | `M` → `male` |
-| `formatName` | Proper case names | `john doe` → `John Doe` |
-| `toUpperCase` | Convert to uppercase | `abc` → `ABC` |
-| `toLowerCase` | Convert to lowercase | `ABC` → `abc` |
-| `trim` | Remove whitespace | ` text ` → `text` |
+| `formatKenyaDate` | Kenya date formats to FHIR | `25/12/1990` → `1990-12-25` |
+| `formatPhoneKE` | Kenya phone to +254 format | `0712345678` → `+254712345678` |
+| `formatNationalId` | Kenya National ID padding | `1234567` → `01234567` |
+| `formatSHANumber` | SHA number formatting | `sha123` → `SHA123` |
+| `formatNHIFNumber` | NHIF number extraction | `NHIF-123456` → `123456` |
+| `formatKenyaDateTime` | Kenya datetime with EAT | `26/12/2025 09:00` → `2025-12-26T09:00:00+03:00` |
+| `formatFacilityCode` | MOH facility code format | `12345` → `12345` (validated 5-digit) |
+| `normalizeGender` | FHIR gender values | `m` → `male`, `f` → `female` |
+| `formatName` | Proper case names | `john mwangi` → `John Mwangi` |
+| `toUpperCase` | Convert to uppercase | `nairobi` → `NAIROBI` |
+| `toLowerCase` | Convert to lowercase | `EMAIL@EXAMPLE.COM` → `email@example.com` |
+| `trim` | Remove whitespace | ` patient name ` → `patient name` |
 
 ## Project Structure
 
 ```
 fhir-n8n-custom-nodes/
-├── nodes/                          # n8n node implementations
-│   ├── patient.js                  # Patient resource node ✅
+├── nodes/                          # Enhanced n8n node implementations
+│   ├── patient.js                  # Patient resource node v3 ✅ (Template Mode)
+│   ├── appointment.js              # Appointment resource node v2 ✅ (Kenya patterns)
+│   ├── bundle.js                   # Bundle resource node v2 ✅ (Semantic indexing)
+│   ├── claimResponse.js            # ClaimResponse node v2 ✅ (Kenya insurance)
+│   ├── eligibilityResponse.js      # EligibilityResponse node v2 ✅ (4 integrators)
 │   └── index.js                    # Node registry
-├── src/                            # Core utilities
-│   ├── mapping/                    # Field mapping system
-│   │   ├── patterns.js             # Pattern matching rules
-│   │   ├── autoDetector.js         # Auto-detection engine
+├── src/                            # Enhanced core utilities
+│   ├── mapping/                    # Enhanced field mapping system
+│   │   ├── patterns.js             # Enhanced patterns (Kenya + integrators)
+│   │   ├── autoDetector.js         # Enhanced auto-detection engine
 │   │   └── manualOverride.js       # Manual mapping interface
-│   ├── validation/                 # Validation system
-│   │   └── forgivingValidator.js   # Permissive FHIR validator
-│   └── utils/                      # Transformation utilities
-│       └── fhirTransform.js        # Main transformation pipeline
-├── archived/                       # Previous comprehensive implementation
+│   ├── validation/                 # Enhanced validation system
+│   │   └── forgivingValidator.js   # Enhanced permissive FHIR validator
+│   └── utils/                      # Enhanced transformation utilities
+│       ├── fhirTransform.js        # Main transformation pipeline
+│       ├── semanticPaths.js        # Semantic array indexing (v2)
+│       └── transformationPresets.js # Kenya-specific transformations (v2)
+├── test-data/                      # Comprehensive test datasets
+│   ├── kenya-patient-samples.json  # Kenya patient test data
+│   ├── kenya-appointment-samples.json # Kenya appointment test data
+│   ├── kenya-bundle-samples.json   # Kenya bundle test data
+│   ├── kenya-claim-samples.json    # Kenya claim response data
+│   └── kenya-eligibility-samples.json # Kenya eligibility data
+├── archived/                       # Previous implementation (reference)
 ├── docker_setup.js                 # Docker setup automation
 ├── test_core.js                    # Core logic testing
-├── package.json                    # Docker-focused dependencies
-├── README.md                       # This file
-├── CLAUDE.md                       # Project configuration
+├── test_enhanced.js                # Enhanced core testing (v2)
+├── test_enhanced_verification.js   # System verification (v2)
+├── package.json                    # Dependencies
+├── README.md                       # This file (updated)
+├── CLAUDE.md                       # Project configuration (updated)
 ├── DOCKER_TESTING_GUIDE.md         # Complete Docker testing instructions
-└── GITHUB_INSTALLATION.md          # GitHub installation guide (recommended)
+└── GITHUB_INSTALLATION.md          # GitHub installation guide
 ```
 
 ## Development
@@ -405,14 +464,24 @@ See `GITHUB_INSTALLATION.md` for complete installation options.
 
 ## Documentation Links
 
-- 📚 **[GitHub Installation Guide](GITHUB_INSTALLATION.md)** - Complete GitHub installation methods
-- 🐳 **[Docker Testing Guide](DOCKER_TESTING_GUIDE.md)** - Comprehensive Docker testing instructions
-- ⚙️ **[Project Configuration](CLAUDE.md)** - Development setup and agent coordination
-- 📦 **[Archived Implementation](archived/)** - Previous comprehensive implementation (reference only)
-- 🎨 **[UI Enhancement Opportunities](UI_ENHANCEMENT_OPPORTUNITIES.md)** - UI improvement ideas and roadmap
-- 🧩 **[N8N UI Elements Reference](N8N_UI_ELEMENTS_REFERENCE.md)** - n8n UI component documentation
-- 🔧 **[N8N Build Reference](N8N_BUILD_REFERENCE.yml)** - Build configuration reference
-- ✅ **[N8N Compliance Audit](N8N_COMPLIANCE_AUDIT.md)** - Compliance and audit documentation
+### Parent Project
+- **[N8N FHIR Bundle Router System](../README.md)** - Central routing, credential management, workflow architecture
+
+### Custom Nodes Documentation
+- **[GitHub Installation Guide](GITHUB_INSTALLATION.md)** - Complete GitHub installation methods
+- **[Docker Testing Guide](DOCKER_TESTING_GUIDE.md)** - Comprehensive Docker testing instructions
+- **[Project Configuration](CLAUDE.md)** - Development setup and agent coordination
+- **[Production Deployment Guide](PRODUCTION_DEPLOYMENT_GUIDE.md)** - Production setup instructions
+
+### Reference Documentation
+- **[Archived Implementation](archived/)** - Previous comprehensive implementation (reference only)
+- **[UI Enhancement Opportunities](UI_ENHANCEMENT_OPPORTUNITIES.md)** - UI improvement ideas and roadmap
+- **[N8N UI Elements Reference](N8N_UI_ELEMENTS_REFERENCE.md)** - n8n UI component documentation
+- **[N8N Build Reference](N8N_BUILD_REFERENCE.yml)** - Build configuration reference
+- **[N8N Compliance Audit](N8N_COMPLIANCE_AUDIT.md)** - Compliance and audit documentation
+
+### Integrator Documentation
+- **[INTEGRATOR_DOCS/](../INTEGRATOR_DOCS/)** - Complete guides for KHIE, mamaTOTO, LCT, Smart integrators
 
 ## Contributing
 
@@ -428,4 +497,6 @@ MIT
 
 ---
 
-*Simple, focused, and effective FHIR transformation for n8n workflows.*
+*Enhanced, focused, and effective FHIR transformation for n8n workflows with Kenya healthcare support.*
+
+*Last Updated: 2025-12-26 - All 5 nodes enhanced with semantic indexing, 4 integrator templates (KHIE, mamaTOTO, LCT, Smart), and 25+ Kenya-specific transformations.*
