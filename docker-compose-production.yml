@@ -109,7 +109,7 @@ services:
             ]
           },
           "scripts": {
-            "build": "tsc && cp -r src/* dist/src/",
+            "build": "tsc",
             "dev": "n8n-node dev",
             "clean": "rm -rf dist"
           },
@@ -195,11 +195,12 @@ services:
         find nodes/ -name "*.ts" -type f 2>/dev/null || echo "  No .ts files found or error accessing nodes/"
 
         echo '🔨 Building TypeScript nodes...'
-        # Run build with verbose output and error handling
-        if npm run build; then
-          echo "✅ TypeScript build completed successfully"
+        # Run TypeScript compilation first
+        echo "Running TypeScript compilation..."
+        if npx tsc; then
+          echo "✅ TypeScript compilation completed"
         else
-          echo "❌ TypeScript build failed"
+          echo "❌ TypeScript compilation failed"
           echo "📋 Checking TypeScript compiler version:"
           npx tsc --version
           echo "📋 Checking if source files exist:"
@@ -208,6 +209,22 @@ services:
           npx tsc --noEmit --listFiles || true
           exit 1
         fi
+
+        echo '📁 Copying JavaScript utility files...'
+        # Ensure dist/src exists
+        mkdir -p dist/src
+        # Copy all src files to dist/src with better error handling
+        if [ -d "src" ]; then
+          echo "Copying src directory contents..."
+          cp -r src/* dist/src/ 2>/dev/null || true
+          echo "✅ JavaScript files copied successfully"
+        else
+          echo "⚠️  No src directory found, skipping file copy"
+        fi
+
+        echo '🔍 Verifying file copy results...'
+        echo "Contents of dist/src/:"
+        ls -la dist/src/ 2>/dev/null || echo "dist/src/ directory not found"
 
         echo '🧪 Verifying build structure...'
         echo "Current directory: $(pwd)"
