@@ -179,6 +179,14 @@ services:
         cp -r temp-repo/nodes ./
         cp -r temp-repo/src ./
 
+        echo '🔍 DEBUG: Checking what was copied from GitHub...'
+        echo "Contents of src directory:"
+        ls -la src/ 2>/dev/null || echo "❌ No src directory found!"
+        echo "Contents of src/utils:"
+        ls -la src/utils/ 2>/dev/null || echo "❌ No src/utils directory found!"
+        echo "Checking for semanticPaths.js:"
+        find src/ -name "*semanticPaths*" -type f 2>/dev/null || echo "❌ semanticPaths not found!"
+
         echo '🧹 Cleaning up temporary and conflicting files...'
         # Remove old JavaScript files to avoid conflicts
         find nodes/ -name "*.js" -type f -delete
