@@ -235,6 +235,176 @@ npm run docker-setup
 }
 ```
 
+## Troubleshooting
+
+### Common Issues & Solutions
+
+#### 🚨 Module Resolution Error: "Cannot find module '../utils/semanticPaths'"
+
+**Symptoms:**
+```
+Error: Cannot find module '../utils/semanticPaths'
+Require stack:
+- /home/node/.n8n/custom/fhir-nodes/dist/src/mapping/manualOverride.js
+```
+
+**Root Cause:** JavaScript utility files (`semanticPaths.js`, `transformationPresets.js`) missing from compiled output.
+
+**Solutions:**
+
+1. **Verify .gitignore Configuration (Most Common)**
+   ```bash
+   # Check if JavaScript utilities are being ignored
+   git status
+   git ls-files src/utils/
+
+   # Should show these files are tracked:
+   # src/utils/semanticPaths.js
+   # src/utils/transformationPresets.js
+   # src/utils/fhirTransform.js
+   ```
+
+2. **Fix .gitignore if Files Are Blocked**
+   ```bash
+   # Add to .gitignore after the src/**/*.js line:
+   # Allow essential JavaScript utility files
+   !src/utils/semanticPaths.js
+   !src/utils/transformationPresets.js
+   !src/utils/fhirTransform.js
+   !src/mapping/autoDetector.js
+   !src/mapping/manualOverride.js
+   !src/mapping/patterns.js
+   !src/validation/forgivingValidator.js
+   ```
+
+3. **Rebuild Docker Containers**
+   ```bash
+   # Force rebuild with latest code
+   docker-compose -f docker-compose-production.yml down
+   docker-compose -f docker-compose-production.yml up --build
+   ```
+
+#### 🔧 Build Process Issues
+
+**Incorrect Build Order (Old):**
+```bash
+# ❌ This can fail - compiles first, then copies
+tsc && cp -r src/* dist/src/
+```
+
+**Correct Build Order (Fixed):**
+```bash
+# ✅ Copy utilities first, then compile TypeScript
+mkdir -p dist/src && cp -r src/* dist/src/ && tsc
+```
+
+**Why This Matters:**
+- JavaScript utilities must be in place before TypeScript compilation
+- TypeScript only compiles `.ts` files, ignoring existing `.js` files
+- Copying first ensures all utilities are available for module resolution
+
+#### 🐳 Docker Build Verification
+
+**Check if Build Process is Working:**
+```bash
+# Look for these debug messages in Docker logs:
+# ✅ "TypeScript build completed successfully"
+# ✅ All 5 node files compiled
+# ✅ No "Cannot find module" errors during imports
+
+# Verify container structure:
+docker exec -it n8n-production ls -la /home/node/.n8n/custom/fhir-nodes/dist/src/utils/
+# Should show: semanticPaths.js, transformationPresets.js, fhirTransform.js
+```
+
+**Force Container Rebuild:**
+```bash
+# Complete rebuild (pulls latest from GitHub)
+docker-compose -f docker-compose-production.yml down
+docker-compose -f docker-compose-production.yml up --build n8n-setup
+
+# Check build logs for:
+# ✅ "Extracting TypeScript FHIR nodes..."
+# ✅ "Building TypeScript nodes..."
+# ✅ "TypeScript FHIR nodes setup completed successfully!"
+```
+
+#### 📁 Local Development Issues
+
+**Build and Test Locally:**
+```bash
+# Clean and rebuild
+npm run clean
+npm run build
+
+# Verify all files are present
+find dist/ -name "*.js" | grep -E "(semantic|transformation)"
+
+# Test module resolution
+node -e "
+try {
+  require('./dist/src/mapping/manualOverride.js');
+  console.log('✅ Module resolution working');
+} catch(e) {
+  console.log('❌ Module resolution failed:', e.message);
+}"
+```
+
+#### 🔍 Missing Files Detection
+
+**Check what's missing:**
+```bash
+# Expected utility files:
+ls -la src/utils/
+# Should show: fhirTransform.js, semanticPaths.js, transformationPresets.js
+
+# Check git tracking:
+git ls-files src/utils/
+# All three files should be listed
+
+# If files are missing, check git ignore:
+git check-ignore src/utils/semanticPaths.js
+# Should return empty (file is NOT ignored)
+```
+
+**Recovery Steps:**
+```bash
+# If files exist locally but aren't tracked:
+git add src/utils/semanticPaths.js src/utils/transformationPresets.js
+git commit -m "fix: add missing JavaScript utility files"
+git push
+
+# If files don't exist, restore from git history:
+git log --oneline --follow src/utils/semanticPaths.js
+git checkout <commit-hash> -- src/utils/semanticPaths.js
+```
+
+#### ⚡ Quick Fix Commands
+
+**One-Command Fix for Module Resolution:**
+```bash
+# Ensure utilities are in git, rebuild container
+git add src/utils/*.js && git commit -m "fix: ensure utilities tracked" && git push
+docker-compose -f docker-compose-production.yml up --build n8n-setup
+```
+
+**Local Testing Fix:**
+```bash
+# Quick local test
+npm run clean && mkdir -p dist/src && cp -r src/* dist/src/ && npx tsc
+node -e "require('./dist/src/mapping/manualOverride.js'); console.log('✅ Working')"
+```
+
+### Deployment Best Practices
+
+1. **Always verify git tracking** before pushing changes
+2. **Use copy-first build order** in all environments
+3. **Check Docker logs** for build completion messages
+4. **Test module resolution** after any build process changes
+5. **Keep .gitignore patterns** up-to-date with essential files
+
+---
+
 ## Node Configuration
 
 ### Processing Modes

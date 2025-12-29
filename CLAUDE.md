@@ -364,6 +364,84 @@ New presets for Kenya healthcare:
 
 **Next Phase**: Deploy to production n8n environments and begin real-world healthcare data integration.
 
+## Critical Build Process Fixes (2025-12-29)
+
+### Module Resolution Issue - RESOLVED
+
+**Issue**: "Cannot find module '../utils/semanticPaths'" errors in Docker environment causing complete node failure.
+
+**Root Cause Analysis**:
+1. **JavaScript utility files blocked by .gitignore** - `semanticPaths.js` and `transformationPresets.js` were present locally but not tracked by git
+2. **Missing files in GitHub repository** - Docker containers clone from GitHub but couldn't find essential utility files
+3. **Incorrect build order** - TypeScript compilation before file copying led to missing dependencies
+
+**Solutions Implemented**:
+
+#### 1. Fixed .gitignore Configuration
+```bash
+# Added to .gitignore after src/**/*.js line:
+# Allow essential JavaScript utility files
+!src/utils/semanticPaths.js
+!src/utils/transformationPresets.js
+!src/utils/fhirTransform.js
+!src/mapping/autoDetector.js
+!src/mapping/manualOverride.js
+!src/mapping/patterns.js
+!src/validation/forgivingValidator.js
+```
+
+#### 2. Updated Build Process Order
+**Before (Problematic):**
+```bash
+tsc && cp -r src/* dist/src/  # ❌ Compile first, copy after
+```
+
+**After (Corrected):**
+```bash
+mkdir -p dist/src && cp -r src/* dist/src/ && tsc  # ✅ Copy first, compile after
+```
+
+**Why This Matters:**
+- Ensures JavaScript utilities are present before TypeScript compilation
+- TypeScript only compiles `.ts` files, leaving existing `.js` files intact
+- Prevents module resolution failures at runtime
+
+#### 3. Docker Compose Configuration Updated
+**Updated `docker-compose-production.yml` build script:**
+```json
+{
+  "scripts": {
+    "build": "mkdir -p dist/src && cp -r src/* dist/src/ && tsc"
+  }
+}
+```
+
+### Files Added to Git Repository
+- `src/utils/semanticPaths.js` (33KB) - Semantic array indexing core functionality
+- `src/utils/transformationPresets.js` (69KB) - Kenya-specific transformations library
+- Updated `.gitignore` with explicit allowances for essential utility files
+
+### Impact and Resolution Verification
+✅ **Module Resolution**: No more "Cannot find module" errors in Docker environment
+✅ **Build Process**: Reliable TypeScript compilation with utility file preservation
+✅ **Docker Deployment**: Successful container builds with all 5 FHIR nodes operational
+✅ **Production Readiness**: Build process now robust for production deployment
+
+### Deployment Best Practices Established
+1. **Always verify git file tracking** before Docker deployment
+2. **Use copy-first build order** in all environments
+3. **Check Docker logs** for module resolution errors
+4. **Test locally** before container deployment
+5. **Maintain .gitignore exceptions** for essential utility files
+
+### Updated Files
+- `README.md` - Added comprehensive troubleshooting section with step-by-step solutions
+- `CLAUDE.md` - This documentation update
+- `docker-compose-production.yml` - Updated build script with correct file copy order
+- `.gitignore` - Added exceptions for essential JavaScript utility files
+
+**Status**: Build process issues completely resolved. All 5 FHIR nodes now deploy successfully in Docker environments with reliable module resolution.
+
 ---
 
-*Last Updated: 2025-12-26 (Core Enhancement Complete)*
+*Last Updated: 2025-12-29 (Build Process Fixes Complete)*
