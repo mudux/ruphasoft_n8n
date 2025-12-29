@@ -233,6 +233,15 @@ ssl/
 nodes/**/*.js
 src/**/*.js
 
+# Allow essential JavaScript utility files
+!src/utils/semanticPaths.js
+!src/utils/transformationPresets.js
+!src/utils/fhirTransform.js
+!src/mapping/autoDetector.js
+!src/mapping/manualOverride.js
+!src/mapping/patterns.js
+!src/validation/forgivingValidator.js
+
 # Keep essential config files
 !tsconfig.json
 !package.json
