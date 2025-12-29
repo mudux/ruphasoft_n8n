@@ -109,7 +109,7 @@ services:
             ]
           },
           "scripts": {
-            "build": "tsc",
+            "build": "mkdir -p dist/src && cp -r src/* dist/src/ && tsc",
             "dev": "n8n-node dev",
             "clean": "rm -rf dist"
           },
