@@ -33,6 +33,13 @@ export class FhirClaimResponse implements INodeType {
 		],
 		properties: [
 			{
+				displayName: 'Mandatory Fields Pre-Populated',
+				name: 'mandatoryFieldsNotice',
+				type: 'notice',
+				default: '',
+				description: 'ℹ️ <strong>Mandatory FHIR fields are pre-populated with common mappings.</strong> You can modify, remove, or add mappings as needed. Adjust source field names to match your input data structure.'
+			},
+			{
 				displayName: 'Auto-Detection Helper',
 				name: 'autoDetectionResults',
 				type: 'options',
@@ -48,7 +55,52 @@ export class FhirClaimResponse implements INodeType {
 				name: 'manualMappings',
 				type: 'fixedCollection',
 				placeholder: 'Add field mapping',
-				default: {},
+				default: {
+					mappingValues: [
+						{
+							sourceField: 'claim_response_status',
+							fhirPath: 'status',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'claim_type',
+							fhirPath: 'type',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'claim_use',
+							fhirPath: 'use',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'patient_id',
+							fhirPath: 'patient.reference',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'created_date',
+							fhirPath: 'created',
+							transformation: 'convertToFhirDate',
+							action: 'override'
+						},
+						{
+							sourceField: 'insurer_name',
+							fhirPath: 'insurer.reference',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'outcome_code',
+							fhirPath: 'outcome',
+							transformation: '',
+							action: 'override'
+						}
+					]
+				},
 				typeOptions: {
 					multipleValues: true,
 				},

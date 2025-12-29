@@ -33,6 +33,13 @@ export class FhirBundle implements INodeType {
 		],
 		properties: [
 			{
+				displayName: 'Mandatory Fields Pre-Populated',
+				name: 'mandatoryFieldsNotice',
+				type: 'notice',
+				default: '',
+				description: 'ℹ️ <strong>Mandatory FHIR fields are pre-populated with common mappings.</strong> You can modify, remove, or add mappings as needed. Adjust source field names to match your input data structure.'
+			},
+			{
 				displayName: 'Auto-Detection Helper',
 				name: 'autoDetectionResults',
 				type: 'options',
@@ -48,7 +55,22 @@ export class FhirBundle implements INodeType {
 				name: 'manualMappings',
 				type: 'fixedCollection',
 				placeholder: 'Add field mapping',
-				default: {},
+				default: {
+					mappingValues: [
+						{
+							sourceField: 'bundle_type',
+							fhirPath: 'type',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'resources',
+							fhirPath: 'entry',
+							transformation: '',
+							action: 'override'
+						}
+					]
+				},
 				typeOptions: {
 					multipleValues: true,
 				},

@@ -28,7 +28,8 @@
     "test": "npm run test-core && npm run test-enhanced",
     "docker-setup": "node docker_setup.js",
     "docker-verify": "node docker_setup.js verify",
-    "build": "tsc",
+    "build": "npm run clean && tsc && npm run copy-src",
+    "copy-src": "cp -r src/* dist/src/",
     "dev": "n8n-node dev",
     "clean": "rm -rf dist"
   },

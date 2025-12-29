@@ -34,6 +34,13 @@ export class FhirPatient implements INodeType {
 		],
 		properties: [
 			{
+				displayName: 'Mandatory Fields Pre-Populated',
+				name: 'mandatoryFieldsNotice',
+				type: 'notice',
+				default: '',
+				description: 'ℹ️ <strong>Mandatory FHIR fields are pre-populated with common mappings.</strong> You can modify, remove, or add mappings as needed. Adjust source field names to match your input data structure.'
+			},
+			{
 				displayName: 'Auto-Detection Helper',
 				name: 'autoDetectionResults',
 				type: 'options',
@@ -49,7 +56,40 @@ export class FhirPatient implements INodeType {
 				name: 'manualMappings',
 				type: 'fixedCollection',
 				placeholder: 'Add field mapping',
-				default: {},
+				default: {
+					mappingValues: [
+						{
+							sourceField: 'patient_id',
+							fhirPath: 'identifier[internal].value',
+							transformation: 'trim',
+							action: 'override'
+						},
+						{
+							sourceField: 'first_name',
+							fhirPath: 'name[0].given[0]',
+							transformation: 'formatName',
+							action: 'override'
+						},
+						{
+							sourceField: 'last_name',
+							fhirPath: 'name[0].family',
+							transformation: 'formatName',
+							action: 'override'
+						},
+						{
+							sourceField: 'birth_date',
+							fhirPath: 'birthDate',
+							transformation: 'convertToFhirDate',
+							action: 'override'
+						},
+						{
+							sourceField: 'gender',
+							fhirPath: 'gender',
+							transformation: 'normalizeGender',
+							action: 'override'
+						}
+					]
+				},
 				typeOptions: {
 					multipleValues: true,
 				},

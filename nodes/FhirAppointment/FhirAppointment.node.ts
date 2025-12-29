@@ -33,6 +33,13 @@ export class FhirAppointment implements INodeType {
 		],
 		properties: [
 			{
+				displayName: 'Mandatory Fields Pre-Populated',
+				name: 'mandatoryFieldsNotice',
+				type: 'notice',
+				default: '',
+				description: 'ℹ️ <strong>Mandatory FHIR fields are pre-populated with common mappings.</strong> You can modify, remove, or add mappings as needed. Adjust source field names to match your input data structure.'
+			},
+			{
 				displayName: 'Auto-Detection Helper',
 				name: 'autoDetectionResults',
 				type: 'options',
@@ -48,7 +55,34 @@ export class FhirAppointment implements INodeType {
 				name: 'manualMappings',
 				type: 'fixedCollection',
 				placeholder: 'Add field mapping',
-				default: {},
+				default: {
+					mappingValues: [
+						{
+							sourceField: 'appointment_status',
+							fhirPath: 'status',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'patient_id',
+							fhirPath: 'participant[patient].actor.reference',
+							transformation: '',
+							action: 'override'
+						},
+						{
+							sourceField: 'start_datetime',
+							fhirPath: 'start',
+							transformation: 'convertToFhirDate',
+							action: 'override'
+						},
+						{
+							sourceField: 'end_datetime',
+							fhirPath: 'end',
+							transformation: 'convertToFhirDate',
+							action: 'override'
+						}
+					]
+				},
 				typeOptions: {
 					multipleValues: true,
 				},
